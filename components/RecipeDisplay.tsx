@@ -255,13 +255,15 @@ ${recipe.scienceCheck}
               </ol>
             </div>
 
-            <div className="p-4 md:p-6 border relative mt-16 shadow-[0_0_20px_rgba(255,255,255,0.05)] overflow-x-auto whitespace-pre-wrap" style={{ backgroundColor: 'var(--bg-color)', borderColor: 'var(--border-color)' }}>
+            <div className="border relative mt-16 shadow-[0_0_20px_rgba(255,255,255,0.05)]" style={{ backgroundColor: 'var(--bg-color)', borderColor: 'var(--border-color)' }}>
               <div className="absolute -top-3 left-6 px-2 header-font text-[9px] font-bold uppercase tracking-widest border" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-color)', borderColor: 'var(--border-color)' }}>
                 {t.scienceLog}
               </div>
-              <p className="text-xs leading-relaxed italic font-mono min-w-[200px]" style={{ color: 'var(--text-color)' }}>
-                {recipe.scienceCheck}
-              </p>
+              <div className="p-4 md:p-6 overflow-x-auto whitespace-pre-wrap">
+                <p className="text-xs leading-relaxed italic font-mono min-w-[200px]" style={{ color: 'var(--text-color)' }}>
+                  {recipe.scienceCheck}
+                </p>
+              </div>
             </div>
           </div>
         </div>
