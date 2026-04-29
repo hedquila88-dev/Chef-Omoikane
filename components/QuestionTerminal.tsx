@@ -212,10 +212,25 @@ const MenuOverlay: React.FC<{ image: string, detections: DetectedItem[], t: Tran
   );
 };
 
+// Typing Indicator Component
+const TypingIndicator: React.FC = () => {
+  return (
+    <div className="flex space-x-1 p-2">
+      <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+      <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+      <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce"></div>
+    </div>
+  );
+};
+
 const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Split state for different loading types
+  const [isImageAnalyzing, setIsImageAnalyzing] = useState(false);
+  const [isChatTyping, setIsChatTyping] = useState(false);
+  
   const [activeMicField, setActiveMicField] = useState<boolean>(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   
@@ -225,9 +240,18 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme }) 
     healthProfile: diagnostics.healthProfile || '',
   });
 
+  const isProcessing = isImageAnalyzing || isChatTyping;
+
   useEffect(() => {
     setLocalCtx({ healthProfile: diagnostics.healthProfile });
   }, [diagnostics.healthProfile]);
+
+  useEffect(() => {
+    // Auto-scroll when typing indicator appears
+    if (isChatTyping) {
+        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [isChatTyping]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -270,7 +294,8 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme }) 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    setIsProcessing(false);
+    setIsImageAnalyzing(false);
+    setIsChatTyping(false);
   };
 
   const handleSend = async (image?: string, isReSync = false) => {
@@ -288,7 +313,15 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme }) 
       setInput('');
     }
 
-    setIsProcessing(true);
+    // Determine which loading state to use
+    // Use Full Screen Overlay for: New Image Uploads, Camera Captures, or Re-Sync (Heavy Processing)
+    // Use Typing Indicator for: Text-only chat (Light Processing)
+    if (image || isReSync) {
+        setIsImageAnalyzing(true);
+    } else {
+        setIsChatTyping(true);
+    }
+
     setIsCameraOpen(false);
     
     abortControllerRef.current = new AbortController();
@@ -334,7 +367,8 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme }) 
         setMessages(prev => [...prev, { role: 'model', text: t.criticalErrorChat }]);
       }
     } finally {
-      setIsProcessing(false);
+      setIsImageAnalyzing(false);
+      setIsChatTyping(false);
       abortControllerRef.current = null;
       setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     }
@@ -369,14 +403,14 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme }) 
     }
   };
 
-  // Define profileChanged to fix undefined name errors.
   const profileChanged = lastInteraction !== null && localCtx.healthProfile !== lastInteraction.profileAtTime;
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {isCameraOpen && <CameraScanner t={t} onClose={() => setIsCameraOpen(false)} onCapture={(b64) => handleSend(b64)} />}
       
-      {isProcessing && (
+      {/* FULL SCREEN OVERLAY - Only for Image Analyzing */}
+      {isImageAnalyzing && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-2xl animate-in fade-in duration-500" 
              style={{ backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)' }}>
           
@@ -500,6 +534,21 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme }) 
               </div>
             </div>
           ))}
+          
+          {/* Chat Typing Bubble */}
+          {isChatTyping && (
+            <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="border bg-black/40 p-4" style={{ borderColor: 'var(--border-color)' }}>
+                <div className="text-[7px] uppercase font-bold mb-2 opacity-50 border-b pb-1">
+                    {t.chefOmoikaneLabel}
+                </div>
+                <div style={{ color: 'var(--text-color)' }}>
+                   <TypingIndicator />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div ref={scrollRef} />
         </div>
 

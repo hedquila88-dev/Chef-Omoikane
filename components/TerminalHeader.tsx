@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { ChefHat } from 'lucide-react';
 import { Translations, AppTheme, AppLanguage, AppView } from '../types';
 import { LANGUAGES } from '../App';
 
@@ -12,6 +13,7 @@ interface Props {
   currentView: AppView;
   setView: (view: AppView) => void;
   onHelpOpen: () => void;
+  onAssistantToggle: () => void;
 }
 
 const TerminalHeader: React.FC<Props> = ({ 
@@ -22,7 +24,8 @@ const TerminalHeader: React.FC<Props> = ({
   setLanguage, 
   currentView, 
   setView, 
-  onHelpOpen
+  onHelpOpen,
+  onAssistantToggle
 }) => {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const selectedLang = LANGUAGES.find(l => l.code === language);
@@ -92,6 +95,15 @@ const TerminalHeader: React.FC<Props> = ({
             </button>
 
             <button 
+              onClick={onAssistantToggle}
+              className="w-12 h-12 border border-white/20 rounded-full flex items-center justify-center transition-all hover:bg-white/10 hover:border-white/50 active:scale-90 group"
+              style={{ borderColor: 'var(--border-color)', color: 'var(--text-color)' }}
+              title="CHEF_OMOIKANE_ASSISTANT"
+            >
+              <ChefHat className="w-6 h-6 opacity-60 group-hover:opacity-100" />
+            </button>
+
+            <button 
               onClick={onHelpOpen}
               className="w-12 h-12 border border-white/20 rounded-full flex items-center justify-center transition-all hover:bg-white/10 hover:border-white/50 active:scale-90 group"
               style={{ borderColor: 'var(--border-color)', color: 'var(--text-color)' }}
@@ -101,9 +113,6 @@ const TerminalHeader: React.FC<Props> = ({
             </button>
           </div>
 
-          <div className="hidden lg:block text-[8px] font-mono opacity-20 uppercase tracking-[0.2em]" style={{ color: 'var(--text-color)' }}>
-            {t.unitStatus}: {t.status} | SENSOR_LINK: STABLE
-          </div>
         </div>
         
         <div className="flex flex-col items-end gap-3">

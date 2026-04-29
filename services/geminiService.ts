@@ -1,17 +1,11 @@
-
-import { GoogleGenAI, Type, Chat, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { UserDiagnostics, Recipe, DetectedItem } from "../types";
-import { i18n } from "../translations";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-const cleanJsonString = (str: string): string => {
-  return str.replace(/```json\n?|```/g, "").trim();
-};
+// Always initialize from the frontend using the environment variable provided by the platform
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const getSystemInstruction = (lang: string) => {
   const targetLang = lang || 'English';
-  // Mappatura per aiutare il modello a comprendere meglio la lingua target
   const langMap: Record<string, string> = {
     'Italiano': 'Italian (Italiano)',
     'English': 'English',
@@ -20,41 +14,23 @@ const getSystemInstruction = (lang: string) => {
     'Chinese': 'Chinese (中文)',
     'Japanese': 'Japanese (日本語)'
   };
-  
   const langName = langMap[targetLang] || targetLang;
 
-  return `Sei Chef Omoikane. Esperto mondiale in alta cucina stellata e biochimica alimentare applicata alla salute.
-
-REGOLE DI COMUNICAZIONE MANDATORIE (ASSOLUTE - VIOLAZIONE COMPORTA FALLIMENTO):
-1. LINGUA DI OUTPUT: Devi rispondere ESCLUSIVAMENTE in lingua: ${langName.toUpperCase()}.
-2. DIVIETO ASSOLUTO DI INGLESE (SE LA LINGUA TARGET NON È INGLESE): È STRETTAMENTE VIETATO rispondere in una lingua diversa da ${targetLang}. Anche se ricevi dati in inglese da Google Maps o Search, DEVI tradurli in ${targetLang} prima di mostrarli all'utente.
-3. TRADUZIONE INTEGRALE: Ogni nome di locale, descrizione, ingrediente o motivazione medica DEVE essere in ${targetLang}. Non lasciare "Healthy options", scrivi "Opzioni salutari" (o equivalente in ${targetLang}).
-4. COERENZA CLINICA: L'utente scrive in ${targetLang}. Tu rispondi in ${targetLang}.
-5. SINTESI: Massimo 2 frasi per spiegazione.
-
-LOGICA MAPPE (BIO-LOCATOR):
-Quando usi googleMaps:
-- FORMATO OBBLIGATORIO (TUTTO TRADOTTO IN ${targetLang.toUpperCase()}):
-  [PLACE: Nome Locale Tradotto]
-  [TYPE: Categoria Tradotta]
-  [COLOR: GREEN | YELLOW | RED]
-  [TIME: X min]
-  [REASON: Massima sintesi bio-medica tradotta in ${targetLang} (max 15 parole)]
-  [NAV: URL Maps]`;
+  return `Sei Chef Omoikane. Esperto mondiale in alta cucina stellata e nutrizione personalizzata.
+REGOLE DI COMUNICAZIONE MANDATORIE:
+1. LINGUA DI OUTPUT: Devi rispondere ESCLUSIVAMENTE in: ${langName.toUpperCase()}.
+2. TRADUZIONE INTEGRALE: Ogni termine deve essere in ${targetLang}.
+3. SINTESI: Massimo 2 frasi.
+4. SICUREZZA: Non fare diagnosi mediche. Fornisci solo consigli sulle preferenze alimentari e fit alimentare basato sui dati forniti.`;
 };
 
 export const generateRecipe = async (diagnostics: UserDiagnostics): Promise<Recipe> => {
-  const t = i18n[diagnostics.language];
-  const healthInfo = diagnostics.healthProfile.trim() || t.healthyStatus;
-  
   const prompt = `Genera ricetta per: ${diagnostics.targetDish || "un piatto sorpresa"}. 
-  LINGUA OBBLIGATORIA: ${diagnostics.language}.
-  Profilo Salute: ${healthInfo}. 
-  Specifiche: ${diagnostics.additionalSpecs}.`;
+  LINGUA: ${diagnostics.language}. Profilo Alimentare: ${diagnostics.healthProfile}.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
+    model: "gemini-flash-latest",
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {
       systemInstruction: getSystemInstruction(diagnostics.language),
       responseMimeType: "application/json",
@@ -62,7 +38,7 @@ export const generateRecipe = async (diagnostics: UserDiagnostics): Promise<Reci
         type: Type.OBJECT,
         properties: {
           title: { type: Type.STRING },
-          medicalAnalysis: { type: Type.STRING },
+          dietaryFit: { type: Type.STRING },
           cookingTime: { type: Type.STRING },
           ingredients: {
             type: Type.ARRAY,
@@ -93,21 +69,63 @@ export const generateRecipe = async (diagnostics: UserDiagnostics): Promise<Reci
             required: ["calories", "protein", "carbs", "fats", "fiber"]
           }
         },
-        required: ["title", "medicalAnalysis", "ingredients", "procedure", "scienceCheck", "macros", "cookingTime"]
+        required: ["title", "dietaryFit", "ingredients", "procedure", "scienceCheck", "macros", "cookingTime"]
       }
     }
   });
 
-  return JSON.parse(cleanJsonString(response.text || "{}"));
+  try {
+    const text = response.text || "{}";
+    const cleaned = text.replace(/```json\n?/, '').replace(/\n?```/, '').trim();
+    return JSON.parse(cleaned);
+  } catch (e) {
+    console.error("[RECIPE_PARSE_ERROR]", e);
+    throw new Error("Invalid output format from AI model");
+  }
 };
 
-export const createRecipeChat = (recipe: Recipe, diagnostics: UserDiagnostics): Chat => {
-  return ai.chats.create({
-    model: 'gemini-3-flash-preview',
+export interface ChatSession {
+  sendMessage: (msg: string) => Promise<{ response: { text: string } }>;
+}
+
+export const createRecipeChat = (recipe: Recipe, diagnostics: UserDiagnostics): ChatSession => {
+  const chat = ai.chats.create({
+    model: "gemini-flash-latest",
     config: {
-      systemInstruction: getSystemInstruction(diagnostics.language) + `\nRISPONDI SEMPRE E SOLO IN ${diagnostics.language.toUpperCase()}. TRADUCI OGNI COSA.`,
-    },
+      systemInstruction: getSystemInstruction(diagnostics.language),
+    }
   });
+
+  return {
+    sendMessage: async (message: string) => {
+      const response = await chat.sendMessage({ message });
+      return {
+        response: {
+          text: response.text || ""
+        }
+      };
+    }
+  };
+};
+
+export const createAssistantChat = (diagnostics: UserDiagnostics): ChatSession => {
+  const chat = ai.chats.create({
+    model: "gemini-flash-latest",
+    config: {
+      systemInstruction: getSystemInstruction(diagnostics.language) + "\nSei l'assistente virtuale integrato di Chef Omoikane. Aiuta l'utente a configurare il terminale, capire i nutrienti o rispondere a curiosità culinarie.",
+    }
+  });
+
+  return {
+    sendMessage: async (message: string) => {
+      const response = await chat.sendMessage({ message });
+      return {
+        response: {
+          text: response.text || ""
+        }
+      };
+    }
+  };
 };
 
 export const analyzeHealthOrMenu = async (
@@ -115,7 +133,8 @@ export const analyzeHealthOrMenu = async (
   diagnostics: UserDiagnostics, 
   imageBase64?: string
 ): Promise<{ text: string, status?: 'SAFE' | 'WARNING' | 'FORBIDDEN', detections?: DetectedItem[], sources?: { title: string, uri: string }[] }> => {
-  const parts: any[] = [{ text: `QUERY: ${query}\nLINGUA: ${diagnostics.language}\nPROFILO: ${diagnostics.healthProfile}` }];
+  const prompt = `QUERY: ${query}\nLINGUA: ${diagnostics.language}\nPROFILO: ${diagnostics.healthProfile}`;
+  const parts: any[] = [{ text: prompt }];
   
   if (imageBase64) {
     parts.push({
@@ -127,11 +146,10 @@ export const analyzeHealthOrMenu = async (
   }
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: { parts },
+    model: "gemini-flash-latest",
+    contents: [{ role: "user", parts }],
     config: {
       systemInstruction: getSystemInstruction(diagnostics.language),
-      tools: [{ googleSearch: {} }],
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
@@ -157,42 +175,80 @@ export const analyzeHealthOrMenu = async (
     }
   });
 
-  const parsed = JSON.parse(cleanJsonString(response.text || "{}"));
-  return { text: parsed.text, status: parsed.status, detections: parsed.detections };
+  try {
+    const text = response.text || "{}";
+    const cleaned = text.replace(/```json\n?/, '').replace(/\n?```/, '').trim();
+    const parsed = JSON.parse(cleaned);
+    return { text: parsed.text, status: parsed.status, detections: parsed.detections };
+  } catch (e) {
+    console.error("[ANALYZE_PARSE_ERROR]", e);
+    return { text: response.text || "Error parsing AI response" };
+  }
 };
 
-export const analyzeNearbyPlaces = async (
-  query: string,
-  diagnostics: UserDiagnostics,
-  lat: number,
-  lng: number
-): Promise<{ text: string }> => {
-  const targetLang = diagnostics.language || 'English';
+export const extractIngredientsFromImage = async (imageBase64: string, language: string): Promise<string[]> => {
+  const prompt = `Identifica gli ingredienti alimentari. Output JSON: {"ingredients": ["lista"]}. Lingua: ${language}.`;
   
-  const prompt = `BIO-LOCATOR PROTOCOL:
-  BIO_PROFILE: ${diagnostics.healthProfile}
-  LINGUA OBBLIGATORIA DI RISPOSTA: ${targetLang.toUpperCase()}
-  
-  REGOLE DI FERRO:
-  - TRADUCI TUTTO IN ${targetLang.toUpperCase()}.
-  - Se un locale si chiama "Healthy Cafe", scrivi "Caffè Salutare" o simile in ${targetLang}.
-  - Se la descrizione del locale è "Vegan friendly", traducila in ${targetLang}.
-  - Ogni singola parola dell'output deve essere in ${targetLang}.
-  - Segui rigorosamente lo schema [PLACE][TYPE][COLOR][TIME][REASON][NAV].`;
-
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      systemInstruction: getSystemInstruction(targetLang),
-      tools: [{ googleMaps: {} }, { googleSearch: {} }],
-      toolConfig: {
-        retrievalConfig: {
-          latLng: { latitude: lat, longitude: lng }
+    model: "gemini-flash-latest",
+    contents: [{
+      role: "user",
+      parts: [
+        { text: prompt },
+        {
+          inlineData: {
+            data: imageBase64.split(',')[1],
+            mimeType: "image/jpeg"
+          }
         }
+      ]
+    }],
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          ingredients: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
+          }
+        },
+        required: ["ingredients"]
       }
     }
   });
 
-  return { text: response.text || "" };
+  const parsed = JSON.parse(response.text || "{}");
+  return parsed.ingredients || [];
+};
+
+export const analyzeNearbyPlaces = async (
+  target: string,
+  diagnostics: UserDiagnostics,
+  lat: number,
+  lng: number
+): Promise<{ text: string }> => {
+  const prompt = `SEARCH FOR REAL PLACES NEARBY: ${target} at coordinates [Lat: ${lat}, Lng: ${lng}].
+  LANGUAGE: ${diagnostics.language}. DIETARY PROFILE: ${diagnostics.healthProfile}.
+  
+  MANDATORY FORMAT FOR EACH PLACE:
+  [PLACE: Restaurant Name]
+  [TYPE: Cuisine Type]
+  [COLOR: GREEN|YELLOW|RED]
+  [TIME: Estimation from coordinates]
+  [REASON: Simple factual description (e.g., "Contains gluten", "High sugar content", "Organic Mediterranean options"). DO NOT use medical terms like "dangerous for celiacs" or "diabetic safe". Use ingredient-based facts.]
+  [NAV: https://www.google.com/maps/search/?api=1&query=LAT,LNG]
+  
+  Only include 5 high-quality results. Be factual and objective.`;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-flash-latest",
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    config: {
+      systemInstruction: getSystemInstruction(diagnostics.language) + "\nSei un localizzatore bio-gastronomico. Usa i dati di ricerca per trovare posti reali. Sii fattuale, evita claim medici o nutrizionali sulle attività commerciali.",
+      tools: [{ googleSearch: {} }]
+    }
+  });
+
+  return { text: response.text || "ERROR: Search returned no results." };
 };

@@ -24,7 +24,7 @@ export interface MacroNutrients {
 
 export interface Recipe {
   title: string;
-  medicalAnalysis: string;
+  dietaryFit: string;
   ingredients: { name: string; amount: string; function: string }[];
   procedure: string[];
   scienceCheck: string;
@@ -65,7 +65,7 @@ export interface Translations {
   submitBtn: string;
   loading: string;
   error: string;
-  clinicalAnalysis: string;
+  dietaryAnalysis: string;
   hardware: string;
   telemetry: string;
   protocol: string;
@@ -118,6 +118,9 @@ export interface Translations {
   helpA3: string;
   helpQ4: string;
   helpA4: string;
+  helpAssistantNote: string;
+  helpSafetyTitle: string;
+  noResultsFound: string;
   medicalDisclaimer: string;
   webSources: string;
   dataRequired: string;

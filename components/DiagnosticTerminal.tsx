@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { UserDiagnostics, AppLanguage, Translations } from '../types';
 import { LANGUAGES } from '../App';
+import IngredientScanner from './IngredientScanner';
 
 interface Props {
   onSumbit: (data: UserDiagnostics) => void;
@@ -16,6 +17,7 @@ interface Props {
 const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, isLoading, language, t }) => {
   const [activeMic, setActiveMic] = useState<string | null>(null);
   const [formData, setFormData] = useState<UserDiagnostics>(diagnostics);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -44,9 +46,8 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
   const updateLocalAndGlobal = (field: keyof UserDiagnostics, value: string) => {
     const newData = { ...formData, [field]: value };
     setFormData(newData);
-    if (field === 'healthProfile') {
-      onUpdate({ [field]: value });
-    }
+    // Persist all changes to global state immediately
+    onUpdate({ [field]: value });
   };
 
   const startVoiceInput = useCallback((field: keyof UserDiagnostics) => {
@@ -75,12 +76,27 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
     recognition.start();
   }, [selectedLang, formData]);
 
+  const handleIngredientsDetected = (ingredients: string[]) => {
+    const currentIngredients = formData.ingredients.split(',').map(i => i.trim()).filter(i => i !== '');
+    const newIngredients = ingredients.map(i => i.trim());
+    
+    // Deduplicate ingredients (case-insensitive)
+    const combined = [...currentIngredients];
+    newIngredients.forEach(ing => {
+      if (!combined.some(c => c.toLowerCase() === ing.toLowerCase())) {
+        combined.push(ing);
+      }
+    });
+    
+    updateLocalAndGlobal('ingredients', combined.join(', '));
+  };
+
   const MicButton = ({ field }: { field: keyof UserDiagnostics }) => (
     <button
       type="button"
       onClick={() => startVoiceInput(field)}
       className={`absolute right-4 top-1/2 -translate-y-1/2 transition-all p-3 flex items-center justify-center rounded-full hover:bg-white/10 ${activeMic === field ? 'recording-pulse scale-125' : 'opacity-40 hover:opacity-100'}`}
-      title="VOCAL_SENSOR_ACTIVATE"
+      title="VOCAL SENSOR ACTIVATE"
     >
       <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
         <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
@@ -91,12 +107,14 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
 
   return (
     <div className="glow-border p-6 rounded-none relative overflow-visible" style={{ backgroundColor: 'var(--bg-color)', borderColor: 'var(--border-color)' }}>
-      <div className="absolute top-0 right-0">
-        <div className="px-2 py-1 text-[8px] border-l border-b font-mono opacity-80" style={{ backgroundColor: 'var(--sub-bg)', borderColor: 'var(--border-color)', color: 'var(--text-color)' }}>
-          {t.linkActive} // PORT_8080
-        </div>
-      </div>
-      
+      {isScannerOpen && (
+        <IngredientScanner 
+          onClose={() => setIsScannerOpen(false)}
+          onIngredientsDetected={handleIngredientsDetected}
+          language={language}
+          t={t}
+        />
+      )}
       <h2 className="header-font text-lg mb-12 flex items-center gap-2 tracking-tighter" style={{ color: 'var(--text-color)' }}>
         <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--text-color)' }}></span>
         {t.synthesisParams}
@@ -161,13 +179,36 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
             <div className="relative border border-white/20 bg-black/20 focus-within:border-white/40 transition-colors">
               <textarea 
                 onFocus={handleFocus}
-                className="w-full bg-transparent p-6 pr-16 text-sm outline-none h-32 font-mono resize-none placeholder:opacity-30 leading-relaxed"
+                className="w-full bg-transparent p-6 pr-32 text-sm outline-none h-32 font-mono resize-none placeholder:opacity-30 leading-relaxed"
                 style={{ color: 'var(--text-color)' }}
                 placeholder={t.ingredientsPlace}
                 value={formData.ingredients}
                 onChange={(e) => updateLocalAndGlobal('ingredients', e.target.value)}
               />
-              <MicButton field="ingredients" />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsScannerOpen(true)}
+                  className="p-3 bg-white/5 rounded-full opacity-40 hover:opacity-100 hover:bg-white/10 transition-all"
+                  title="BIO SCANNER ACTIVATE"
+                >
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+                    <circle cx="12" cy="12" r="3.2"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => startVoiceInput('ingredients')}
+                  className={`p-3 flex items-center justify-center rounded-full hover:bg-white/10 transition-all ${activeMic === 'ingredients' ? 'recording-pulse scale-125' : 'opacity-40 hover:opacity-100'}`}
+                  title="VOCAL SENSOR ACTIVATE"
+                >
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>

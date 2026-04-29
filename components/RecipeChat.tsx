@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Chat } from '@google/genai';
+import { ChatSession } from '../services/geminiService';
 import { ChatMessage, Translations } from '../types';
 
 interface Props {
-  chatSession: Chat;
+  chatSession: ChatSession;
   t: Translations;
 }
 
@@ -36,8 +36,8 @@ const RecipeChat: React.FC<Props> = ({ chatSession, t }) => {
     setIsTyping(true);
 
     try {
-      const result = await chatSession.sendMessage({ message: userMessage });
-      setMessages(prev => [...prev, { role: 'model', text: result.text || '...' }]);
+      const result = await chatSession.sendMessage(userMessage);
+      setMessages(prev => [...prev, { role: 'model', text: result.response.text || '...' }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'model', text: t.criticalErrorChat }]);
     } finally {

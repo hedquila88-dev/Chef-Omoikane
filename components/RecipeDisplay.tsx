@@ -29,8 +29,8 @@ const RecipeDisplay: React.FC<Props> = ({ recipe, t }) => {
 ---
 ${t.cookingTimeLabel.toUpperCase()}: ${recipe.cookingTime}
 
-${t.clinicalAnalysis.toUpperCase()}
-${recipe.medicalAnalysis}
+${t.dietaryAnalysis.toUpperCase()}
+${recipe.dietaryFit}
 
 ${t.hardware.toUpperCase()}
 ${recipe.ingredients.map(ing => `- ${ing.name}: ${ing.amount} (${ing.function})`).join('\n')}
@@ -105,14 +105,14 @@ ${recipe.scienceCheck}
     doc.text(`${t.cookingTimeLabel.toUpperCase()}: ${recipe.cookingTime}`, margin, cursorY);
     cursorY += 10;
 
-    // Clinical Analysis
+    // Dietary Analysis
     doc.setFont("helvetica", "bold");
-    doc.text(t.clinicalAnalysis.toUpperCase() + ":", margin, cursorY);
+    doc.text(t.dietaryAnalysis.toUpperCase() + ":", margin, cursorY);
     cursorY += 6;
     doc.setFont("helvetica", "normal");
-    const medicalLines = doc.splitTextToSize(recipe.medicalAnalysis, maxLineWidth);
-    doc.text(medicalLines, margin, cursorY);
-    cursorY += medicalLines.length * 5 + 8;
+    const dietaryLines = doc.splitTextToSize(recipe.dietaryFit, maxLineWidth);
+    doc.text(dietaryLines, margin, cursorY);
+    cursorY += dietaryLines.length * 5 + 8;
 
     // Ingredients
     doc.setFont("helvetica", "bold");
@@ -208,8 +208,8 @@ ${recipe.scienceCheck}
         </div>
         
         <div className="mb-10 p-4 md:p-6 border text-sm leading-relaxed font-mono overflow-x-auto whitespace-pre-wrap" style={{ backgroundColor: 'var(--sub-bg)', borderColor: 'var(--border-color)', color: 'var(--text-color)' }}>
-          <span className="font-bold block mb-2 uppercase text-[10px] tracking-[0.4em] opacity-80">{t.clinicalAnalysis}:</span>
-          {recipe.medicalAnalysis}
+          <span className="font-bold block mb-2 uppercase text-[10px] tracking-[0.4em] opacity-80">{t.dietaryAnalysis}:</span>
+          {recipe.dietaryFit}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">

@@ -8,10 +8,10 @@ import RecipeChat from './components/RecipeChat';
 import QuestionTerminal from './components/QuestionTerminal';
 import MapsTerminal from './components/MapsTerminal';
 import HelpModal from './components/HelpModal';
+import FloatingAssistant from './components/FloatingAssistant';
 import { UserDiagnostics, Recipe, AppLanguage, AppTheme, AppView } from './types';
 import { i18n } from './translations';
-import { generateRecipe, createRecipeChat } from './services/geminiService';
-import { Chat } from '@google/genai';
+import { generateRecipe, createRecipeChat, createAssistantChat, ChatSession } from './services/geminiService';
 
 export const LANGUAGES: { code: AppLanguage; label: string; flag: string; speechCode: string }[] = [
   { code: 'Chinese', label: '中文', flag: '🇨🇳', speechCode: 'zh-CN' },
@@ -27,10 +27,12 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [chatSession, setChatSession] = useState<Chat | null>(null);
+  const [chatSession, setChatSession] = useState<ChatSession | null>(null);
   const [language, setLanguage] = useState<AppLanguage>('English');
   const [theme, setTheme] = useState<AppTheme>('dark');
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [assistantSession, setAssistantSession] = useState<ChatSession | null>(null);
   
   const [diagnostics, setDiagnostics] = useState<UserDiagnostics>({
     healthProfile: '',
@@ -102,6 +104,13 @@ const App: React.FC = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
+  const handleAssistantToggle = () => {
+    if (!assistantSession) {
+      setAssistantSession(createAssistantChat(diagnostics));
+    }
+    setIsAssistantOpen(!isAssistantOpen);
+  };
+
   return (
     <div className="min-h-screen pb-24 theme-transition font-mono selection:bg-white selection:text-black" style={{ color: 'var(--text-color)' }}>
       <TerminalHeader 
@@ -113,9 +122,17 @@ const App: React.FC = () => {
         currentView={view}
         setView={setView}
         onHelpOpen={() => setIsHelpOpen(true)}
+        onAssistantToggle={handleAssistantToggle}
       />
 
       {isHelpOpen && <HelpModal t={t} onClose={() => setIsHelpOpen(false)} />}
+      {isAssistantOpen && assistantSession && (
+        <FloatingAssistant 
+          chatSession={assistantSession} 
+          t={t} 
+          onClose={() => setIsAssistantOpen(false)} 
+        />
+      )}
       
       <main className="container mx-auto px-4 mt-12 space-y-16">
         <div className="max-w-5xl mx-auto">

@@ -76,6 +76,7 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
+          console.log(`[GEO_SYNC] Coordinates acquired: ${latitude}, ${longitude}`);
           const data = await analyzeNearbyPlaces(
             "restaurants, cafes, and bakeries",
             { ...diagnostics, healthProfile: localHealth },
@@ -85,15 +86,18 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
           setRawResult(data.text);
           setLastSyncProfile(localHealth);
         } catch (err: any) {
+          console.error('[MAPS_ERROR]', err);
           setError(err.message || t.error);
         } finally {
           setLoading(false);
         }
       },
       (err) => {
+        console.error('[GEO_ERROR]', err);
         setError(`${t.gpsError} (${err.message})`);
         setLoading(false);
-      }
+      },
+      { timeout: 15000, enableHighAccuracy: true, maximumAge: 60000 }
     );
   }, [diagnostics, localHealth, t, setLoading, setError]);
 
@@ -198,6 +202,13 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
 
       {/* RESULTS LIST - ENHANCED CARDS */}
       <div className="space-y-6">
+        {rawResult && parsedResults.length === 0 && (
+          <div className="p-12 border-2 border-dashed border-white/10 text-center opacity-40">
+            <p className="text-xs uppercase tracking-widest font-mono">
+              {t.noResultsFound}
+            </p>
+          </div>
+        )}
         {parsedResults.map((res, i) => (
           <div key={i} className="border-2 overflow-hidden bg-black/50 group animate-in slide-in-from-right-4 duration-500" style={{ borderColor: 'var(--border-color)', animationDelay: `${i * 100}ms` }}>
             {/* Header: Color-coded Box */}
