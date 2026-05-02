@@ -33,6 +33,7 @@ const App: React.FC = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [assistantSession, setAssistantSession] = useState<ChatSession | null>(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   
   const [diagnostics, setDiagnostics] = useState<UserDiagnostics>({
     healthProfile: '',
@@ -64,9 +65,9 @@ const App: React.FC = () => {
     setError(null);
   };
 
-  const updateDiagnostics = (updates: Partial<UserDiagnostics>) => {
+  const updateDiagnostics = React.useCallback((updates: Partial<UserDiagnostics>) => {
     setDiagnostics(prev => ({ ...prev, ...updates }));
-  };
+  }, []);
 
   const handleDiagnosticSubmit = async (data: UserDiagnostics) => {
     setDiagnostics(data);
@@ -111,6 +112,38 @@ const App: React.FC = () => {
     setIsAssistantOpen(!isAssistantOpen);
   };
 
+  const handleAssistantAction = (action: string, args: any) => {
+    if (action === 'prepare_synthesis') {
+      const { targetDish, dietaryProfile, ingredients, additionalSpecs } = args;
+      setDiagnostics(prev => ({
+        ...prev,
+        targetDish: targetDish || prev.targetDish,
+        healthProfile: dietaryProfile || prev.healthProfile,
+        ingredients: ingredients || prev.ingredients,
+        additionalSpecs: additionalSpecs || prev.additionalSpecs
+      }));
+      setView('synthesis');
+      setIsAssistantOpen(false); // Close assistant when navigating
+      
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (action === 'open_scanner') {
+      if (args && Object.keys(args).length > 0) {
+        setDiagnostics(prev => ({
+          ...prev,
+          healthProfile: args.dietaryProfile || prev.healthProfile,
+          preferences: args.additionalSpecs ? (prev.preferences ? `${prev.preferences}. ${args.additionalSpecs}` : args.additionalSpecs) : prev.preferences
+        }));
+      }
+      setIsScannerOpen(true);
+      setView('questions');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (action === 'open_locator') {
+      setView('locator');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen pb-24 theme-transition font-mono selection:bg-white selection:text-black" style={{ color: 'var(--text-color)' }}>
       <TerminalHeader 
@@ -130,7 +163,9 @@ const App: React.FC = () => {
         <FloatingAssistant 
           chatSession={assistantSession} 
           t={t} 
+          language={language}
           onClose={() => setIsAssistantOpen(false)} 
+          onAction={handleAssistantAction}
         />
       )}
       
@@ -148,6 +183,8 @@ const App: React.FC = () => {
                   language={language}
                   setLanguage={handleLanguageChange}
                   t={t}
+                  forceScanner={isScannerOpen}
+                  onScannerClose={() => setIsScannerOpen(false)}
                 />
               </section>
 
@@ -160,7 +197,7 @@ const App: React.FC = () => {
               {recipe && (
                 <section id="recipe-output" className="pt-20 border-t" style={{ borderColor: 'var(--border-color)' }}>
                   <RecipeDisplay recipe={recipe} t={t} />
-                  {chatSession && <RecipeChat chatSession={chatSession} t={t} />}
+                  {chatSession && <RecipeChat chatSession={chatSession} t={t} language={language} onAction={handleAssistantAction} />}
                   <div className="mt-16 flex justify-center">
                     <button 
                       onClick={() => {
@@ -179,7 +216,14 @@ const App: React.FC = () => {
             </>
           ) : view === 'questions' ? (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <QuestionTerminal t={t} diagnostics={diagnostics} onUpdate={updateDiagnostics} theme={theme} />
+              <QuestionTerminal 
+                t={t} 
+                diagnostics={diagnostics} 
+                onUpdate={updateDiagnostics} 
+                theme={theme} 
+                forceScanner={isScannerOpen}
+                onScannerClose={() => setIsScannerOpen(false)}
+              />
             </section>
           ) : (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -197,7 +241,7 @@ const App: React.FC = () => {
                 style={{ color: 'var(--text-color)' }}
                 title="CANCEL_SYNTHESIS"
               >
-                <div className="w-14 h-14 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110 active:scale-90 bg-black/10 backdrop-blur-md" style={{ borderColor: 'var(--border-color)' }}>
+                <div className="w-14 h-14 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110 active:scale-90 backdrop-blur-md" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--sub-bg)' }}>
                   <span className="text-2xl font-light group-hover:rotate-90 transition-transform duration-300">✕</span>
                 </div>
                 <span className="text-[10px] font-black tracking-[0.2em] uppercase opacity-70 group-hover:opacity-100 transition-opacity">
@@ -219,11 +263,11 @@ const App: React.FC = () => {
                     <p className="text-[14px] font-black tracking-[1em] uppercase animate-pulse pr-[-1em]" style={{ color: 'var(--text-color)' }}>
                       {t.loading}
                     </p>
-                    <div className="h-1 w-full bg-white/10 relative overflow-hidden rounded-full">
+                    <div className="h-1 w-full relative overflow-hidden rounded-full" style={{ backgroundColor: 'var(--sub-border)' }}>
                       <div className="absolute inset-0 bg-current animate-[loading-progress_3.5s_ease-in-out_infinite]"></div>
                     </div>
                   </div>
-                  <p className="text-[10px] opacity-70 uppercase tracking-[0.25em] font-mono leading-relaxed bg-black/5 p-2 rounded backdrop-blur-sm">
+                  <p className="text-[10px] opacity-70 uppercase tracking-[0.25em] font-mono leading-relaxed p-2 rounded backdrop-blur-sm" style={{ backgroundColor: 'var(--sub-bg)' }}>
                     {t.syncDiagnosticMatrix}<br/>
                     {t.analysisClinicalParams}
                   </p>

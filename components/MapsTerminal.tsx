@@ -130,7 +130,7 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
     <div className="flex flex-col gap-8 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col gap-6">
         {/* HEALTH INPUT BOX */}
-        <div className={`glow-border p-6 bg-black/30 border-2 transition-all duration-500 ${profileChanged ? 'border-yellow-500 animate-[glow-pulse_2s_infinite]' : ''}`} style={{ borderColor: profileChanged ? undefined : 'var(--border-color)' }}>
+        <div className={`glow-border p-6 border-2 transition-all duration-500 ${profileChanged ? 'border-yellow-500 animate-[glow-pulse_2s_infinite]' : ''}`} style={{ borderColor: profileChanged ? undefined : 'var(--border-color)', backgroundColor: 'var(--sub-bg)' }}>
           <div className="flex justify-between items-center mb-6">
             <div className="text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-3">
               <span className={`w-3 h-3 rounded-full ${profileChanged ? 'bg-yellow-500 animate-pulse' : 'bg-green-500 opacity-50'}`}></span>
@@ -150,8 +150,8 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
           </div>
           <div className="relative">
             <textarea 
-              className="w-full bg-transparent border-b border-white/10 text-[14px] py-4 pr-16 outline-none focus:border-white/40 transition-all font-mono min-h-[80px] resize-none leading-relaxed" 
-              style={{ color: 'var(--text-color)' }} 
+              className="w-full bg-transparent border-b text-[14px] py-4 pr-16 outline-none transition-all font-mono min-h-[80px] resize-none leading-relaxed" 
+              style={{ color: 'var(--text-color)', borderColor: 'var(--sub-border)' }} 
               value={localHealth} 
               onChange={(e) => handleUpdateHealth(e.target.value)} 
               placeholder={t.healthProfilePlace}
@@ -166,7 +166,7 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
         </div>
 
         {/* BIO-LOCATOR PROTOCOL INFO */}
-        <div className="glow-border p-6 bg-white/5 border-2 border-dashed opacity-80" style={{ borderColor: 'var(--border-color)' }}>
+        <div className="glow-border p-6 border-2 border-dashed opacity-80" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--sub-bg)' }}>
           <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -177,7 +177,7 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
              <p className="text-[11px] font-mono leading-relaxed opacity-60">
                {t.mapsExplainer}
              </p>
-             <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+             <div className="grid grid-cols-2 gap-4 pt-2 border-t" style={{ borderColor: 'var(--sub-border)' }}>
                 <div className="flex items-center gap-2 text-[9px] uppercase tracking-tighter opacity-40">
                    <span className="w-1.5 h-1.5 bg-green-500"></span> {t.safeZone}
                 </div>
@@ -210,7 +210,7 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
           </div>
         )}
         {parsedResults.map((res, i) => (
-          <div key={i} className="border-2 overflow-hidden bg-black/50 group animate-in slide-in-from-right-4 duration-500" style={{ borderColor: 'var(--border-color)', animationDelay: `${i * 100}ms` }}>
+          <div key={i} className="border-2 overflow-hidden group animate-in slide-in-from-right-4 duration-500" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--terminal-bg)', animationDelay: `${i * 100}ms` }}>
             {/* Header: Color-coded Box */}
             <div 
               className="px-6 py-4 flex justify-between items-start" 

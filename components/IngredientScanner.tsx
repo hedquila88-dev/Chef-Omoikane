@@ -200,17 +200,18 @@ const IngredientScanner: React.FC<Props> = ({ onIngredientsDetected, onClose, la
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 backdrop-blur-md bg-black/80 font-mono">
-      <div className="w-full max-w-2xl border-2 border-white/20 bg-black relative overflow-hidden" style={{ borderColor: 'var(--border-color)' }}>
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 md:p-4 backdrop-blur-md bg-black/60 font-mono">
+      <div className="w-full h-full md:h-auto md:max-w-4xl border-2 relative overflow-hidden flex flex-col shadow-2xl" style={{ backgroundColor: 'var(--bg-color)', borderColor: 'var(--border-color)' }}>
         {/* SCANNER OVERLAY */}
         <div className="absolute inset-0 pointer-events-none z-10">
-           <div className="absolute top-0 w-full h-0.5 bg-white/20 animate-[loading-scan_2s_linear_infinite]"></div>
-           <div className="absolute inset-0 border-[40px] border-black/40"></div>
-           <div className="absolute top-4 left-4 text-[10px] uppercase opacity-60 text-white">BIO SCAN READY</div>
+           <div className="absolute top-0 w-full h-0.5 animate-[loading-scan_2s_linear_infinite]" style={{ backgroundColor: 'var(--text-color)', opacity: 0.4 }}></div>
+           <div className="absolute inset-0 border-[10px] md:border-[20px]" style={{ borderColor: 'var(--bg-color)', opacity: 0.2 }}></div>
+           <div className="absolute top-4 left-4 text-[10px] uppercase font-bold px-2 py-1" style={{ backgroundColor: 'var(--sub-bg)', color: 'var(--text-color)' }}>BIO SCAN ACTIVE</div>
         </div>
 
         <div 
-          className="aspect-video bg-zinc-900 relative cursor-pointer" 
+          className="flex-1 min-h-0 relative cursor-pointer overflow-hidden" 
+          style={{ backgroundColor: 'var(--sub-bg)' }}
           onClick={() => fileInputRef.current?.click()}
           title="CLICK_TO_UPLOAD"
         >
@@ -218,7 +219,7 @@ const IngredientScanner: React.FC<Props> = ({ onIngredientsDetected, onClose, la
             ref={videoRef} 
             autoPlay 
             playsInline 
-            className="w-full h-full object-cover grayscale opacity-80" 
+            className="w-full h-full object-cover shadow-2xl" 
           />
           <canvas ref={canvasRef} className="hidden" />
           <input 
@@ -229,32 +230,32 @@ const IngredientScanner: React.FC<Props> = ({ onIngredientsDetected, onClose, la
             onChange={handleFileUpload} 
           />
           
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/40 z-10">
-            <div className="text-[10px] uppercase font-bold tracking-widest text-white border border-white/40 px-4 py-2 bg-black/60">
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity z-10" style={{ backgroundColor: 'var(--bg-color)', opacity: 0.4 }}>
+            <div className="text-[10px] uppercase font-bold tracking-widest border px-4 py-2" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-color)', borderColor: 'var(--border-color)' }}>
               CLICK TO UPLOAD FILE / PASTE IMAGE
             </div>
           </div>
           
           {isAnalyzing && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20 backdrop-blur-sm">
+            <div className="absolute inset-0 flex items-center justify-center z-20 backdrop-blur-sm" style={{ backgroundColor: 'var(--bg-color)', opacity: 0.8 }}>
               <div className="flex flex-col items-center gap-6 w-64">
-                <div className="relative w-full h-1 bg-white/10 overflow-hidden">
+                <div className="relative w-full h-1 overflow-hidden" style={{ backgroundColor: 'var(--sub-border)' }}>
                   <div 
-                    className="absolute inset-y-0 left-0 bg-white transition-all duration-500 ease-out"
-                    style={{ width: `${progress}%` }}
+                    className="absolute inset-y-0 left-0 transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%`, backgroundColor: 'var(--text-color)' }}
                   />
                 </div>
                 <div className="flex justify-between w-full">
-                  <div className="text-[10px] uppercase tracking-widest text-white/60">{t.processing}</div>
-                  <div className="text-[10px] uppercase font-bold text-white tabular-nums">{Math.floor(progress)}%</div>
+                  <div className="text-[10px] uppercase tracking-widest opacity-60" style={{ color: 'var(--text-color)' }}>{t.processing}</div>
+                  <div className="text-[10px] uppercase font-bold tabular-nums" style={{ color: 'var(--text-color)' }}>{Math.floor(progress)}%</div>
                 </div>
-                <div className="w-12 h-12 border-2 border-t-white border-white/10 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--border-color)', borderTopColor: 'var(--text-color)' }}></div>
               </div>
             </div>
           )}
         </div>
 
-        <div className="p-6 flex flex-col gap-4 border-t border-white/10">
+        <div className="p-6 flex flex-col gap-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
           {lastAddedCount > 0 && !error && (
             <div className="text-[10px] uppercase text-green-400 bg-green-400/10 p-2 border border-green-400/20 animate-in fade-in slide-in-from-top-1">
               [BIO_UPDATE]: {lastAddedCount} NEW SENSORS DETECTED. READY FOR NEXT CAPTURE.
@@ -271,15 +272,15 @@ const IngredientScanner: React.FC<Props> = ({ onIngredientsDetected, onClose, la
             <button 
               onClick={captureAndAnalyze}
               disabled={isAnalyzing}
-              className="flex-[2] py-4 border-2 border-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all active:scale-95 disabled:opacity-30"
-              style={{ borderColor: 'var(--text-color)', color: 'var(--text-color)' }}
+              className="flex-[2] py-4 border-2 text-[10px] font-black uppercase tracking-[0.3em] transition-all active:scale-95 disabled:opacity-30 hover:opacity-80"
+              style={{ backgroundColor: 'var(--text-color)', color: 'var(--bg-color)', borderColor: 'var(--text-color)' }}
             >
               {t.captureData}
             </button>
             <button 
               onClick={onClose}
-              className="flex-1 py-4 border border-white/20 text-[10px] font-black uppercase tracking-widest opacity-60 hover:opacity-100 transition-all bg-white/5"
-              style={{ color: 'var(--text-color)' }}
+              className="flex-1 py-4 border text-[10px] font-black uppercase tracking-widest opacity-60 hover:opacity-100 transition-all"
+              style={{ borderColor: 'var(--border-color)', color: 'var(--text-color)', backgroundColor: 'var(--sub-bg)' }}
             >
               {lastAddedCount > 0 ? "FINISH" : t.cancelBtn}
             </button>

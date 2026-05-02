@@ -6,9 +6,11 @@ import { ChatMessage, Translations } from '../types';
 interface Props {
   chatSession: ChatSession;
   t: Translations;
+  language: string;
+  onAction?: (action: string, args: any) => void;
 }
 
-const RecipeChat: React.FC<Props> = ({ chatSession, t }) => {
+const RecipeChat: React.FC<Props> = ({ chatSession, t, language, onAction }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -36,9 +38,68 @@ const RecipeChat: React.FC<Props> = ({ chatSession, t }) => {
     setIsTyping(true);
 
     try {
-      const result = await chatSession.sendMessage(userMessage);
-      setMessages(prev => [...prev, { role: 'model', text: result.response.text || '...' }]);
+      console.log("[RECIPE_CHAT] Sending message:", userMessage);
+      const result = await chatSession.sendMessage({ message: userMessage });
+      
+      let responseText = '';
+      try {
+        responseText = result.text || '';
+      } catch (e) {
+        console.warn("[RECIPE_CHAT] No text response from model, checking function calls...");
+        responseText = '';
+      }
+
+      // Handle Text-based commands
+      if (responseText.includes('[ACTION:PREPARE_SYNTHESIS]')) {
+        onAction?.('prepare_synthesis', {});
+        responseText = responseText.replace('[ACTION:PREPARE_SYNTHESIS]', '').trim();
+      }
+
+      let hasScannerAction = false;
+      if (responseText.includes('[ACTION:OPEN_SCANNER]')) {
+        onAction?.('open_scanner', {});
+        responseText = responseText.replace('[ACTION:OPEN_SCANNER]', '').trim();
+        hasScannerAction = true;
+      }
+
+      let hasLocatorAction = false;
+      if (responseText.includes('[ACTION:OPEN_LOCATOR]')) {
+        onAction?.('open_locator', {});
+        responseText = responseText.replace('[ACTION:OPEN_LOCATOR]', '').trim();
+        hasLocatorAction = true;
+      }
+
+      const scanMatch = responseText.match(/\[SCANNER_DATA:(.*?)\]/);
+      if (scanMatch) {
+        try {
+          const data = JSON.parse(scanMatch[1]);
+          onAction?.('open_scanner', data);
+          responseText = responseText.replace(scanMatch[0], '').trim();
+          hasScannerAction = true;
+        } catch (e) {
+          console.error("Failed to parse scanner data", e);
+        }
+      }
+
+      const synthMatch = responseText.match(/\[SYNTHESIS_DATA:(.*?)\]/);
+        if (synthMatch) {
+        try {
+          const data = JSON.parse(synthMatch[1]);
+          onAction?.('prepare_synthesis', data);
+          responseText = responseText.replace(synthMatch[0], '').trim();
+        } catch (e) {
+          console.error("Failed to parse synthesis data", e);
+        }
+      }
+
+      setMessages(prev => [...prev, { 
+        role: 'model', 
+        text: responseText || t.actionAcknowledge,
+        hasScannerAction,
+        hasLocatorAction
+      }]);
     } catch (err) {
+      console.error("[RECIPE_CHAT_ERROR]", err);
       setMessages(prev => [...prev, { role: 'model', text: t.criticalErrorChat }]);
     } finally {
       setIsTyping(false);
@@ -96,11 +157,36 @@ const RecipeChat: React.FC<Props> = ({ chatSession, t }) => {
                 : { backgroundColor: 'var(--bg-color)', color: 'var(--text-color)', borderColor: 'var(--border-color)' }
             }>
               <div className="text-[7px] uppercase font-bold mb-3 tracking-widest border-b pb-1 inline-block" style={{ borderColor: 'currentColor' }}>
-                {msg.role === 'user' ? t.unitPilot : t.chefOmoikaneLabel}
+                {msg.role === 'user' ? t.userLabel : t.chefOmoikaneLabel}
               </div>
               <div className="leading-relaxed text-[13px] whitespace-pre-wrap overflow-x-auto custom-scrollbar">
                 {msg.text}
               </div>
+              {msg.hasScannerAction && (
+                <button 
+                  onClick={() => onAction?.('open_scanner', {})}
+                  className="mt-4 w-full py-3 border-2 border-dashed flex items-center justify-center gap-3 hover:bg-white/5 transition-all uppercase text-[10px] font-black group"
+                  style={{ borderColor: 'var(--border-color)', color: 'var(--text-color)' }}
+                >
+                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+                    <circle cx="12" cy="12" r="3.2"/>
+                  </svg>
+                  {t.liveScan}
+                </button>
+              )}
+              {msg.hasLocatorAction && (
+                <button 
+                  onClick={() => onAction?.('open_locator', {})}
+                  className="mt-4 w-full py-3 border-2 border-dashed flex items-center justify-center gap-3 hover:bg-white/5 transition-all uppercase text-[10px] font-black group"
+                  style={{ borderColor: 'var(--border-color)', color: 'var(--text-color)' }}
+                >
+                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                  {language === 'Italiano' ? 'TROVA LOCALI' : 'FIND VENUES'}
+                </button>
+              )}
             </div>
           </div>
         ))}

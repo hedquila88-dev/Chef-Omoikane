@@ -30,6 +30,8 @@ export interface Recipe {
   scienceCheck: string;
   macros: MacroNutrients;
   cookingTime: string;
+  allergenWarning?: string;
+  allergenSeverity?: 'high' | 'low' | null;
 }
 
 export interface DetectedItem {
@@ -46,6 +48,10 @@ export interface ChatMessage {
   detections?: DetectedItem[];
   sources?: { title: string, uri: string }[];
   status?: 'SAFE' | 'WARNING' | 'FORBIDDEN'; // Added for global message alert
+  isAutoPrompt?: boolean;
+  macros?: MacroNutrients;
+  hasScannerAction?: boolean;
+  hasLocatorAction?: boolean;
 }
 
 export interface Translations {
@@ -65,9 +71,9 @@ export interface Translations {
   submitBtn: string;
   loading: string;
   error: string;
-  dietaryAnalysis: string;
-  hardware: string;
-  telemetry: string;
+  chefProfile: string;
+  gastronomicComponents: string;
+  nutritionalSpecs: string;
   protocol: string;
   scienceLog: string;
   newSynthesis: string;
@@ -100,7 +106,7 @@ export interface Translations {
   goalMuslim: string;
   goalAntiInflammatory: string;
   goalOther: string;
-  unitPilot: string;
+  userLabel: string;
   chefOmoikaneLabel: string;
   criticalErrorChat: string;
   scanningTarget: string;
@@ -122,6 +128,7 @@ export interface Translations {
   helpSafetyTitle: string;
   noResultsFound: string;
   medicalDisclaimer: string;
+  allergenConflictDetected: string;
   webSources: string;
   dataRequired: string;
   systemLocked: string;
@@ -132,11 +139,13 @@ export interface Translations {
   linkActive: string;
   unitStatus: string;
   pressToScan: string;
+  actionAcknowledge: string;
   quickStartProtocol: string;
   step1: string;
   step2: string;
   step3: string;
   reanalyzeBtn: string;
+  macroDisclaimer: string;
   mapsTitle: string;
   mapsSearchPlace: string;
   gpsBtn: string;
@@ -150,4 +159,14 @@ export interface Translations {
   safe: string;
   warning: string;
   forbidden: string;
+  howItWorks: string;
+  howItWorksScan: string;
+  howItWorksUpload: string;
+  howItWorksQuery: string;
+  queryTip: string;
+  examples: string;
+  exampleProduct: string;
+  exampleDish: string;
+  exampleMenu: string;
+  assistantGreeting: string;
 }

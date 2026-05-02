@@ -29,21 +29,25 @@ const RecipeDisplay: React.FC<Props> = ({ recipe, t }) => {
 ---
 ${t.cookingTimeLabel.toUpperCase()}: ${recipe.cookingTime}
 
-${t.dietaryAnalysis.toUpperCase()}
+${recipe.allergenWarning ? `!!! ${recipe.allergenSeverity === 'high' ? t.helpSafetyTitle.toUpperCase() : 'DIETARY NOTICE'} !!!\n${recipe.allergenWarning}\n---\n` : ''}
+
+${t.chefProfile.toUpperCase()}
 ${recipe.dietaryFit}
 
-${t.hardware.toUpperCase()}
+${t.gastronomicComponents.toUpperCase()}
 ${recipe.ingredients.map(ing => `- ${ing.name}: ${ing.amount} (${ing.function})`).join('\n')}
 
 ${t.protocol.toUpperCase()}
 ${recipe.procedure.map((step, idx) => `${idx + 1}. ${step}`).join('\n')}
 
-${t.telemetry.toUpperCase()}
+${t.nutritionalSpecs.toUpperCase()} (PER 100G)
 - Calories: ${recipe.macros.calories}
 - Protein: ${recipe.macros.protein}
 - Carbs: ${recipe.macros.carbs}
 - Fats: ${recipe.macros.fats}
 - Fiber: ${recipe.macros.fiber}
+
+${t.macroDisclaimer}
 
 ${t.scienceLog.toUpperCase()}
 ${recipe.scienceCheck}
@@ -105,9 +109,28 @@ ${recipe.scienceCheck}
     doc.text(`${t.cookingTimeLabel.toUpperCase()}: ${recipe.cookingTime}`, margin, cursorY);
     cursorY += 10;
 
-    // Dietary Analysis
+    // Allergen Warning
+    if (recipe.allergenWarning) {
+      const isHigh = recipe.allergenSeverity === 'high';
+      doc.setFont("helvetica", "bold");
+      if (isHigh) {
+        doc.setTextColor(200, 0, 0);
+        doc.text(t.helpSafetyTitle.toUpperCase(), margin, cursorY);
+      } else {
+        doc.setTextColor(184, 134, 11); // DarkGoldenRod for yellow-ish warn
+        doc.text("DIETARY NOTICE", margin, cursorY);
+      }
+      cursorY += 6;
+      doc.setFont("helvetica", "normal");
+      const warningLines = doc.splitTextToSize(recipe.allergenWarning, maxLineWidth);
+      doc.text(warningLines, margin, cursorY);
+      cursorY += warningLines.length * 5 + 8;
+      doc.setTextColor(0, 0, 0); // Reset color
+    }
+
+    // Chef's Profile
     doc.setFont("helvetica", "bold");
-    doc.text(t.dietaryAnalysis.toUpperCase() + ":", margin, cursorY);
+    doc.text(t.chefProfile.toUpperCase() + ":", margin, cursorY);
     cursorY += 6;
     doc.setFont("helvetica", "normal");
     const dietaryLines = doc.splitTextToSize(recipe.dietaryFit, maxLineWidth);
@@ -116,7 +139,7 @@ ${recipe.scienceCheck}
 
     // Ingredients
     doc.setFont("helvetica", "bold");
-    doc.text(t.hardware.toUpperCase() + ":", margin, cursorY);
+    doc.text(t.gastronomicComponents.toUpperCase() + ":", margin, cursorY);
     cursorY += 6;
     doc.setFont("helvetica", "normal");
     recipe.ingredients.forEach(ing => {
@@ -142,10 +165,10 @@ ${recipe.scienceCheck}
     });
     cursorY += 8;
 
-    // Telemetry
+    // Nutritional Specs
     if (cursorY > 250) { doc.addPage(); cursorY = margin; }
     doc.setFont("helvetica", "bold");
-    doc.text(t.telemetry.toUpperCase() + ":", margin, cursorY);
+    doc.text(t.nutritionalSpecs.toUpperCase() + " (PER 100G):", margin, cursorY);
     cursorY += 6;
     doc.setFont("helvetica", "normal");
     const macros = [
@@ -159,7 +182,12 @@ ${recipe.scienceCheck}
       doc.text(m, margin, cursorY);
       cursorY += 5;
     });
-    cursorY += 8;
+    cursorY += 2;
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    const disclaimerLines = doc.splitTextToSize(t.macroDisclaimer, maxLineWidth);
+    doc.text(disclaimerLines, margin, cursorY);
+    cursorY += disclaimerLines.length * 4 + 8;
 
     // Science Log
     if (cursorY > 250) { doc.addPage(); cursorY = margin; }
@@ -178,16 +206,6 @@ ${recipe.scienceCheck}
     <div className="space-y-12 animate-in fade-in duration-700 printable-recipe">
       <div className="glow-border p-6 md:p-10 rounded-none border-t-4 relative overflow-x-hidden" style={{ backgroundColor: 'var(--bg-color)', borderColor: 'var(--border-color)', borderTopColor: 'var(--text-color)' }}>
         <div className="absolute top-4 right-4 md:right-10 flex flex-col items-end gap-2 no-print">
-          <button 
-            onClick={handleShare}
-            className="flex items-center gap-2 px-3 py-1.5 border border-white/20 text-[9px] uppercase font-bold tracking-widest hover:bg-white/10 transition-all"
-            style={{ color: 'var(--text-color)', borderColor: 'var(--border-color)' }}
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-            {t.shareBtn}
-          </button>
           {showCopyFeedback && (
             <span className="text-[7px] font-bold tracking-tighter opacity-80" style={{ color: 'var(--text-color)' }}>
               {t.copySuccess}
@@ -206,16 +224,39 @@ ${recipe.scienceCheck}
              {t.cookingTimeLabel}: <span className="text-[var(--text-color)] opacity-100">{recipe.cookingTime}</span>
           </div>
         </div>
+
+        {recipe.allergenWarning && (
+          <div 
+            className="mb-8 p-5 border-l-4 font-mono text-[11px] leading-relaxed animate-in slide-in-from-left-2 duration-500"
+            style={{ 
+              backgroundColor: recipe.allergenSeverity === 'high' ? 'rgba(255, 51, 51, 0.05)' : 'rgba(255, 204, 0, 0.05)', 
+              borderColor: recipe.allergenSeverity === 'high' ? 'var(--red-safe)' : 'var(--yellow-warn)',
+              color: recipe.allergenSeverity === 'high' ? 'var(--red-safe)' : 'var(--yellow-warn)'
+            }}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                {recipe.allergenSeverity === 'high' ? (
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                ) : (
+                  <path d="M13 16h-2v-2h2v2zm0-4h-2V7h2v4zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                )}
+              </svg>
+              <span className="font-bold uppercase tracking-widest text-[12px]">{recipe.allergenSeverity === 'high' ? t.helpSafetyTitle : 'DIETARY NOTICE'}</span>
+            </div>
+            {recipe.allergenWarning}
+          </div>
+        )}
         
         <div className="mb-10 p-4 md:p-6 border text-sm leading-relaxed font-mono overflow-x-auto whitespace-pre-wrap" style={{ backgroundColor: 'var(--sub-bg)', borderColor: 'var(--border-color)', color: 'var(--text-color)' }}>
-          <span className="font-bold block mb-2 uppercase text-[10px] tracking-[0.4em] opacity-80">{t.dietaryAnalysis}:</span>
+          <span className="font-bold block mb-2 uppercase text-[10px] tracking-[0.4em] opacity-80">{t.chefProfile}:</span>
           {recipe.dietaryFit}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-4 space-y-10">
             <div className="overflow-x-auto">
-              <h3 className="header-font text-[11px] font-bold mb-6 border-b pb-2 uppercase tracking-widest" style={{ color: 'var(--text-color)', borderColor: 'var(--border-color)' }}>{t.hardware}</h3>
+              <h3 className="header-font text-[11px] font-bold mb-6 border-b pb-2 uppercase tracking-widest" style={{ color: 'var(--text-color)', borderColor: 'var(--border-color)' }}>{t.gastronomicComponents}</h3>
               <ul className="space-y-4 min-w-[200px]">
                 {recipe.ingredients.map((ing, idx) => (
                   <li key={idx} className="border-b pb-2" style={{ borderColor: 'var(--border-color)' }}>
@@ -232,13 +273,16 @@ ${recipe.scienceCheck}
             </div>
 
             <div className="p-4 md:p-6 border overflow-x-auto" style={{ backgroundColor: 'var(--sub-bg)', borderColor: 'var(--border-color)' }}>
-              <h3 className="header-font text-[9px] mb-4 uppercase font-bold tracking-widest" style={{ color: 'var(--text-color)' }}>{t.telemetry}</h3>
+              <h3 className="header-font text-[9px] mb-4 uppercase font-bold tracking-widest" style={{ color: 'var(--text-color)' }}>{t.nutritionalSpecs} (100g)</h3>
               <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-[11px] font-mono min-w-[150px]">
-                <div className="flex flex-col"><span className="text-[8px] opacity-60 uppercase" style={{ color: 'var(--text-color)' }}>Energy</span> <span style={{ color: 'var(--text-color)' }}>{recipe.macros.calories}</span></div>
-                <div className="flex flex-col"><span className="text-[8px] opacity-60 uppercase" style={{ color: 'var(--text-color)' }}>Prot</span> <span style={{ color: 'var(--text-color)' }}>{recipe.macros.protein}</span></div>
-                <div className="flex flex-col"><span className="text-[8px] opacity-60 uppercase" style={{ color: 'var(--text-color)' }}>Carb</span> <span style={{ color: 'var(--text-color)' }}>{recipe.macros.carbs}</span></div>
-                <div className="flex flex-col"><span className="text-[8px] opacity-60 uppercase" style={{ color: 'var(--text-color)' }}>Lipid</span> <span style={{ color: 'var(--text-color)' }}>{recipe.macros.fats}</span></div>
+                <div className="flex flex-col"><span className="text-[8px] opacity-60 uppercase" style={{ color: 'var(--text-color)' }}>Kcal / 100g</span> <span style={{ color: 'var(--text-color)' }}>{recipe.macros.calories}</span></div>
+                <div className="flex flex-col"><span className="text-[8px] opacity-60 uppercase" style={{ color: 'var(--text-color)' }}>Prot / 100g</span> <span style={{ color: 'var(--text-color)' }}>{recipe.macros.protein}</span></div>
+                <div className="flex flex-col"><span className="text-[8px] opacity-60 uppercase" style={{ color: 'var(--text-color)' }}>Carb / 100g</span> <span style={{ color: 'var(--text-color)' }}>{recipe.macros.carbs}</span></div>
+                <div className="flex flex-col"><span className="text-[8px] opacity-60 uppercase" style={{ color: 'var(--text-color)' }}>Lipid / 100g</span> <span style={{ color: 'var(--text-color)' }}>{recipe.macros.fats}</span></div>
               </div>
+              <p className="mt-4 text-[7px] leading-tight italic opacity-60 uppercase tracking-tighter" style={{ color: 'var(--text-color)' }}>
+                {t.macroDisclaimer}
+              </p>
             </div>
           </div>
 
@@ -284,10 +328,10 @@ ${recipe.scienceCheck}
             </button>
             
             {isExportOpen && (
-              <div className="absolute bottom-full left-0 mb-1 w-44 border shadow-2xl flex flex-col z-50 animate-in slide-in-from-bottom-2 fade-in duration-200 bg-black" style={{ borderColor: 'var(--border-color)' }}>
+              <div className="absolute bottom-full left-0 mb-1 w-44 border shadow-2xl flex flex-col z-50 animate-in slide-in-from-bottom-2 fade-in duration-200" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-color)' }}>
                 <button 
                   onClick={copyToClipboard}
-                  className="px-4 py-3 text-left text-[9px] uppercase font-bold tracking-widest hover:bg-white/10 transition-colors flex items-center justify-between"
+                  className="px-4 py-3 text-left text-[9px] uppercase font-bold tracking-widest transition-colors flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/10"
                   style={{ color: 'var(--text-color)' }}
                 >
                   {t.copyText}
@@ -295,7 +339,7 @@ ${recipe.scienceCheck}
                 </button>
                 <button 
                   onClick={downloadTxt}
-                  className="px-4 py-3 text-left text-[9px] uppercase font-bold tracking-widest border-t hover:bg-white/10 transition-colors flex items-center justify-between"
+                  className="px-4 py-3 text-left text-[9px] uppercase font-bold tracking-widest border-t transition-colors flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/10"
                   style={{ color: 'var(--text-color)', borderColor: 'var(--border-color)' }}
                 >
                   {t.downloadTxt}
@@ -303,7 +347,7 @@ ${recipe.scienceCheck}
                 </button>
                 <button 
                   onClick={generatePdf}
-                  className="px-4 py-3 text-left text-[9px] uppercase font-bold tracking-widest border-t hover:bg-white/10 transition-colors flex items-center justify-between"
+                  className="px-4 py-3 text-left text-[9px] uppercase font-bold tracking-widest border-t transition-colors flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/10"
                   style={{ color: 'var(--text-color)', borderColor: 'var(--border-color)' }}
                 >
                   {t.downloadPdf}
