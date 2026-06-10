@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { RotateCcw } from 'lucide-react';
 import { Translations, UserDiagnostics, ChatMessage, DetectedItem, AppTheme, MacroNutrients } from '../types';
 import { analyzeHealthOrMenu } from '../services/geminiService';
 import { LANGUAGES } from '../App';
@@ -264,6 +265,12 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme, fo
     onScannerClose?.();
   };
 
+  const resetScanner = () => {
+    setMessages([]);
+    setIsImageAnalyzing(false);
+    setActiveMacros(undefined);
+  };
+
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -491,7 +498,7 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme, fo
   const hasVisibleMessages = messages.some(m => !m.isAutoPrompt || m.role === 'model');
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="flex flex-col md:gap-6 gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {isCameraOpen && <CameraScanner t={t} onClose={closeCamera} onCapture={(b64) => handleSend(b64)} />}
       
       {/* FULL SCREEN OVERLAY - Only for Image Analyzing */}
@@ -585,17 +592,24 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme, fo
         )}
       </AnimatePresence>
 
-      <div className="glow-border flex flex-col min-h-[500px] mb-20 rounded-none z-30" style={{ backgroundColor: 'var(--bg-color)', borderColor: 'var(--border-color)' }}>
+      <div className="glow-border flex flex-col md:min-h-[500px] min-h-[450px] md:mb-20 mb-0 rounded-none z-30" style={{ backgroundColor: 'var(--bg-color)', borderColor: 'var(--border-color)' }}>
         <div 
-          className="border-b p-4 flex justify-between items-center sticky z-[60] backdrop-blur-xl transition-all duration-300" 
+          className="border-b md:p-4 p-1.5 flex justify-between items-center sticky z-[60] backdrop-blur-xl transition-all duration-300" 
           style={{ 
-            top: 'var(--header-height, 64px)', 
+            top: '0px', 
             backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.85)', 
             borderColor: 'var(--border-color)' 
           }}
         >
-          <h2 className="header-font text-xs font-bold tracking-[0.2em] uppercase">{t.healthCenter}</h2>
-          <div className="flex gap-3">
+          <h2 className="header-font text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">{t.healthCenter}</h2>
+          <div className="flex gap-2">
+            <button 
+              onClick={resetScanner}
+              className="p-1.5 hover:bg-white/5 rounded-full transition-all group"
+              title="Reset Scan"
+            >
+              <RotateCcw className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" />
+            </button>
             <button 
               onClick={() => setIsCameraOpen(true)} 
               className="px-4 py-2 text-[10px] font-black uppercase flex items-center gap-1 hover:scale-105 active:scale-95 transition-all"
@@ -625,65 +639,72 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme, fo
               initial={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0, marginTop: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
               transition={{ duration: 0.5, ease: 'easeInOut' }}
-              className="p-3 border-b bg-white/5 space-y-3 overflow-hidden" 
+              className="p-2 md:p-3 border-b bg-white/5 md:space-y-3 space-y-1.5 overflow-hidden" 
               style={{ borderColor: 'var(--border-color)' }}
             >
               <div className="flex justify-between items-center">
-                <h3 className="text-[9px] font-black uppercase tracking-[0.4em] opacity-40">{t.howItWorks}</h3>
-                <span className="text-[8px] font-mono opacity-20 tracking-widest">SYSTEM_GUIDE_V1.1</span>
+                <h3 className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] opacity-40">{t.howItWorks}</h3>
+                <span className="text-[7px] md:text-[8px] font-mono opacity-20 tracking-widest">SYSTEM_V1.1</span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-[10px] font-mono leading-tight">
-                <div className="space-y-0.5">
-                  <div className="font-bold uppercase text-[9px]" style={{ color: 'var(--text-color)' }}>SCAN</div>
-                  <div className="opacity-60 text-[9px]">{t.howItWorksScan.split(' — ')[1] || t.howItWorksScan}</div>
+              <div className="grid grid-cols-1 md:grid-cols-3 md:gap-4 gap-1 text-[9px] md:text-[10px] font-mono leading-tight">
+                <div className="md:space-y-0 flex md:block items-center gap-2">
+                  <div className="font-black uppercase text-[8px] md:text-[9px] shrink-0" style={{ color: 'var(--text-color)' }}>[SCAN]</div>
+                  <div className="opacity-100 text-[8px] md:text-[9px] truncate" style={{ color: theme === 'dark' ? '#fff' : '#000' }}>{t.howItWorksScan.split(' — ')[1] || t.howItWorksScan}</div>
                 </div>
-                <div className="space-y-0.5">
-                  <div className="font-bold uppercase text-[9px]" style={{ color: 'var(--text-color)' }}>UPLOAD</div>
-                  <div className="opacity-60 text-[9px]">{t.howItWorksUpload.split(' — ')[1] || t.howItWorksUpload}</div>
+                <div className="md:space-y-0 flex md:block items-center gap-2">
+                  <div className="font-black uppercase text-[8px] md:text-[9px] shrink-0" style={{ color: 'var(--text-color)' }}>[UPLOAD]</div>
+                  <div className="opacity-100 text-[8px] md:text-[9px] truncate" style={{ color: theme === 'dark' ? '#fff' : '#000' }}>{t.howItWorksUpload.split(' — ')[1] || t.howItWorksUpload}</div>
                 </div>
-                <div className="space-y-0.5">
-                  <div className="font-bold uppercase text-[9px]" style={{ color: 'var(--text-color)' }}>QUERY</div>
-                  <div className="opacity-60 text-[9px]">{t.howItWorksQuery.split(' — ')[1] || t.howItWorksQuery}</div>
+                <div className="md:space-y-0 flex md:block items-center gap-2">
+                  <div className="font-black uppercase text-[8px] md:text-[9px] shrink-0" style={{ color: 'var(--text-color)' }}>[QUERY]</div>
+                  <div className="opacity-100 text-[8px] md:text-[9px] truncate" style={{ color: theme === 'dark' ? '#fff' : '#000' }}>{t.howItWorksQuery.split(' — ')[1] || t.howItWorksQuery}</div>
                 </div>
               </div>
               
-              <div className="pt-2 border-t border-white/5">
-                <div className="flex flex-wrap gap-2 text-[8px] font-mono opacity-40 uppercase tracking-tighter">
-                   <span className="font-bold text-white/30">{t.examples}</span>
-                   <span>{t.exampleProduct}</span>
-                   <span>|</span>
-                   <span>{t.exampleDish}</span>
-                   <span>|</span>
-                   <span>{t.exampleMenu}</span>
+              <div className="pt-2 border-t border-white/10 md:space-y-2 space-y-1">
+                <span className="text-[7px] font-black uppercase tracking-[0.4em] opacity-40">{t.examples}</span>
+                <div className="md:space-y-1.5 space-y-1">
+                  <div className="flex items-center gap-3 text-[8px] md:text-[9px] font-bold" style={{ color: 'var(--text-color)' }}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500/60 shrink-0"></div>
+                    <span className="opacity-90">{t.exampleProduct}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[8px] md:text-[9px] font-bold" style={{ color: 'var(--text-color)' }}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500/60 shrink-0"></div>
+                    <span className="opacity-90">{t.exampleDish}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[8px] md:text-[9px] font-bold" style={{ color: 'var(--text-color)' }}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500/60 shrink-0"></div>
+                    <span className="opacity-90">{t.exampleMenu}</span>
+                  </div>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="flex-1 p-6 space-y-6 font-mono">
+        <div className="flex-1 md:p-6 p-2 md:space-y-6 space-y-3 font-mono overflow-y-auto">
           {messages.map((msg, idx) => (
             <React.Fragment key={idx}>
               {(!msg.isAutoPrompt || msg.role === 'model') && (
                 <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[95%] border transition-all duration-500 overflow-hidden ${msg.role === 'user' ? 'p-4' : ''}`} style={{ 
+                  <div className={`max-w-[95%] border transition-all duration-500 overflow-hidden ${msg.role === 'user' ? 'md:p-4 p-2.5' : ''}`} style={{ 
                     borderColor: 'var(--border-color)', 
                     backgroundColor: msg.role === 'model' ? 'var(--terminal-bg)' : 'var(--text-color)',
                     color: msg.role === 'model' ? 'var(--text-color)' : 'var(--bg-color)'
                   }}>
                     {msg.role === 'model' && msg.status && (msg.detections && msg.detections.length > 0) && (
                        <div 
-                        className="w-full py-3 px-4 flex items-center justify-center gap-3 border-b-2 shadow-inner"
+                        className="w-full md:py-3 py-1.5 px-4 flex items-center justify-center gap-2 border-b-2 shadow-inner"
                         style={{ backgroundColor: getStatusBannerColor(msg.status), borderColor: 'rgba(0,0,0,0.1)' }}
                        >
-                          <span className="text-[12px] font-black tracking-[0.3em] uppercase text-black drop-shadow-sm">
+                          <span className="md:text-[12px] text-[10px] font-black tracking-[0.2em] uppercase text-black drop-shadow-sm">
                             {getStatusBannerText(msg.status)}
                           </span>
                        </div>
                     )}
                     
-                    <div className={msg.role === 'model' ? 'p-4' : ''}>
-                      <div className="text-[7px] uppercase font-bold mb-2 opacity-50 border-b pb-1">
+                    <div className={msg.role === 'model' ? 'md:p-4 p-2.5' : ''}>
+                      <div className="md:text-[7px] text-[6px] uppercase font-bold md:mb-2 mb-1 opacity-50 border-b pb-0.5">
                         {msg.role === 'user' ? t.userLabel : t.chefOmoikaneLabel}
                       </div>
                       {msg.image && msg.role === 'model' && msg.detections ? (
@@ -692,7 +713,7 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme, fo
                          <img src={msg.image} alt="Result" className="mb-4 max-w-full border p-1" style={{ borderColor: 'var(--border-color)' }} />
                       ) : null}
                       
-                      <div className="text-sm whitespace-pre-wrap leading-relaxed">{msg.text}</div>
+                      <div className="md:text-sm text-xs whitespace-pre-wrap leading-relaxed">{msg.text}</div>
 
                       {msg.role === 'model' && msg.macros && (
                         <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
@@ -747,16 +768,16 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme, fo
           <div ref={scrollRef} />
         </div>
 
-        <div className="p-1 px-2 border-t" style={{ backgroundColor: 'var(--sub-bg)', borderColor: 'var(--border-color)' }}>
+        <div className="p-0 border-t" style={{ backgroundColor: 'var(--sub-bg)', borderColor: 'var(--border-color)' }}>
           {!input && (
             <div className="text-[7px] font-mono opacity-25 uppercase tracking-[0.3em] py-1 px-2 text-center animate-pulse">
               {t.queryTip}
             </div>
           )}
-          <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2 items-end pb-1">
+          <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2 items-end md:p-3 p-1.5 pt-1 pb-1">
             <textarea 
               rows={1}
-              className="flex-1 bg-transparent outline-none text-[12px] font-mono resize-none py-1 px-2 transition-all duration-300 min-h-[22px] max-h-[180px] border-b" 
+              className="flex-1 bg-transparent outline-none text-[12px] font-mono resize-none py-1 px-2 transition-all duration-300 min-h-[30px] md:min-h-[26px] max-h-[120px] border-b" 
               style={{ color: 'var(--text-color)', borderColor: 'var(--sub-border)' }} 
               placeholder={t.chatPlaceholder} 
               value={input} 
@@ -779,8 +800,8 @@ const QuestionTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, theme, fo
             <button 
               type="submit" 
               disabled={isProcessing || !input.trim()} 
-              className="px-3 py-1 text-[9px] font-black uppercase disabled:opacity-20 transition-all active:scale-95 h-[26px]"
-              style={{ backgroundColor: 'var(--text-color)', color: 'var(--bg-color)' }}
+              className="px-4 py-1.5 md:py-2 text-[10px] font-black uppercase disabled:opacity-20 transition-all active:scale-95 h-[30px] md:h-[32px] border"
+              style={{ backgroundColor: 'var(--text-color)', color: 'var(--bg-color)', borderColor: 'var(--text-color)' }}
             >
               {t.send}
             </button>

@@ -127,21 +127,21 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
   };
 
   return (
-    <div className="flex flex-col gap-8 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col gap-6">
+    <div className="flex flex-col md:gap-8 gap-4 md:pb-24 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col md:gap-6 gap-3">
         {/* HEALTH INPUT BOX */}
-        <div className={`glow-border p-6 border-2 transition-all duration-500 ${profileChanged ? 'border-yellow-500 animate-[glow-pulse_2s_infinite]' : ''}`} style={{ borderColor: profileChanged ? undefined : 'var(--border-color)', backgroundColor: 'var(--sub-bg)' }}>
-          <div className="flex justify-between items-center mb-6">
-            <div className="text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-3">
-              <span className={`w-3 h-3 rounded-full ${profileChanged ? 'bg-yellow-500 animate-pulse' : 'bg-green-500 opacity-50'}`}></span>
+        <div className={`glow-border md:p-6 p-3 border-2 transition-all duration-500 ${profileChanged ? 'border-yellow-500 animate-[glow-pulse_2s_infinite]' : ''}`} style={{ borderColor: profileChanged ? undefined : 'var(--border-color)', backgroundColor: 'var(--sub-bg)' }}>
+          <div className="flex justify-between items-center md:mb-6 mb-2">
+            <div className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+              <span className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${profileChanged ? 'bg-yellow-500 animate-pulse' : 'bg-green-500 opacity-50'}`}></span>
               {t.activeClinicalProfile}
             </div>
             {profileChanged && (
               <button 
                 onClick={handleActivateScan}
-                className="text-[10px] font-black uppercase tracking-widest px-4 py-2 bg-yellow-500 text-black hover:bg-yellow-400 transition-all flex items-center gap-3 active:scale-95 shadow-[0_0_20px_rgba(234,179,8,0.3)]"
+                className="text-[9px] md:text-[10px] font-black uppercase tracking-widest px-3 py-1.5 md:px-4 md:py-2 bg-yellow-500 text-black hover:bg-yellow-400 transition-all flex items-center gap-2 active:scale-95 shadow-[0_0_20px_rgba(234,179,8,0.3)]"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 {t.reanalyzeBtn}
@@ -150,7 +150,7 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
           </div>
           <div className="relative">
             <textarea 
-              className="w-full bg-transparent border-b text-[14px] py-4 pr-16 outline-none transition-all font-mono min-h-[80px] resize-none leading-relaxed" 
+              className="w-full bg-transparent border-b md:text-[14px] text-[12px] md:py-4 py-2 pr-12 md:pr-16 outline-none transition-all font-mono md:min-h-[80px] min-h-[40px] resize-none leading-relaxed" 
               style={{ color: 'var(--text-color)', borderColor: 'var(--sub-border)' }} 
               value={localHealth} 
               onChange={(e) => handleUpdateHealth(e.target.value)} 
@@ -158,15 +158,15 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
             />
             <button
               onClick={() => startVoiceInput('health')}
-              className={`absolute right-0 top-4 p-3 rounded-full transition-all ${activeMicField === 'health' ? 'recording-pulse' : 'opacity-30 hover:opacity-100'}`}
+              className={`absolute right-0 top-1.5 md:top-4 p-2 md:p-3 rounded-full transition-all ${activeMicField === 'health' ? 'recording-pulse' : 'opacity-30 hover:opacity-100'}`}
             >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
             </button>
           </div>
         </div>
 
         {/* BIO-LOCATOR PROTOCOL INFO */}
-        <div className="glow-border p-6 border-2 border-dashed opacity-80" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--sub-bg)' }}>
+        <div className="glow-border md:p-6 p-6 border-2 border-dashed" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--sub-bg)' }}>
           <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -174,18 +174,18 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
             {t.systemInfo}
           </div>
           <div className="space-y-4">
-             <p className="text-[11px] font-mono leading-relaxed opacity-60">
+             <p className="text-[11px] font-mono leading-relaxed opacity-80">
                {t.mapsExplainer}
              </p>
-             <div className="grid grid-cols-2 gap-4 pt-2 border-t" style={{ borderColor: 'var(--sub-border)' }}>
-                <div className="flex items-center gap-2 text-[9px] uppercase tracking-tighter opacity-40">
-                   <span className="w-1.5 h-1.5 bg-green-500"></span> {t.safeZone}
+             <div className="grid grid-cols-2 gap-2 pt-2 border-t" style={{ borderColor: 'var(--sub-border)' }}>
+                <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-tighter opacity-40">
+                   <span className="w-1 h-1 bg-green-500"></span> {t.safeZone}
                 </div>
-                <div className="flex items-center gap-2 text-[9px] uppercase tracking-tighter opacity-40">
-                   <span className="w-1.5 h-1.5 bg-yellow-500"></span> {t.bioCaution}
+                <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-tighter opacity-40">
+                   <span className="w-1 h-1 bg-yellow-500"></span> {t.bioCaution}
                 </div>
-                <div className="flex items-center gap-2 text-[9px] uppercase tracking-tighter opacity-40">
-                   <span className="w-1.5 h-1.5 bg-red-500"></span> {t.criticalRestriction}
+                <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-tighter opacity-40">
+                   <span className="w-1 h-1 bg-red-500"></span> {t.criticalRestriction}
                 </div>
              </div>
           </div>
@@ -194,14 +194,14 @@ const MapsTerminal: React.FC<Props> = ({ t, diagnostics, onUpdate, setLoading, s
 
       <button
         onClick={handleActivateScan}
-        className="w-full py-10 header-font font-black text-sm uppercase tracking-[0.5em] border-4 transition-all active:scale-95 hover:bg-white hover:text-black hover:shadow-[0_0_50px_rgba(255,255,255,0.2)]"
+        className="w-full md:py-10 py-8 header-font font-black md:text-sm text-[11px] uppercase tracking-[0.5em] border-4 transition-all active:scale-95 hover:bg-white hover:text-black hover:shadow-[0_0_50px_rgba(255,255,255,0.2)]"
         style={{ borderColor: 'var(--text-color)', color: 'var(--text-color)' }}
       >
         {t.gpsBtn}
       </button>
 
       {/* RESULTS LIST - ENHANCED CARDS */}
-      <div className="space-y-6">
+      <div className="md:space-y-6 space-y-3">
         {rawResult && parsedResults.length === 0 && (
           <div className="p-12 border-2 border-dashed border-white/10 text-center opacity-40">
             <p className="text-xs uppercase tracking-widest font-mono">

@@ -9,16 +9,28 @@ interface Props {
   chatSession: ChatSession;
   t: Translations;
   language: string;
+  messages: ChatMessage[];
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+  isMinimized: boolean;
+  setIsMinimized: (val: boolean) => void;
   onClose: () => void;
   onAction?: (action: string, args: any) => void;
 }
 
-const FloatingAssistant: React.FC<Props> = ({ chatSession, t, language, onClose, onAction }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+const FloatingAssistant: React.FC<Props> = ({ 
+  chatSession, 
+  t, 
+  language, 
+  messages, 
+  setMessages, 
+  isMinimized, 
+  setIsMinimized, 
+  onClose, 
+  onAction 
+}) => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [position, setPosition] = useState(() => {
     if (typeof window === 'undefined') return { x: 0, y: 0 };
     const isMobile = window.innerWidth < 768;

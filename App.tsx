@@ -9,7 +9,7 @@ import QuestionTerminal from './components/QuestionTerminal';
 import MapsTerminal from './components/MapsTerminal';
 import HelpModal from './components/HelpModal';
 import FloatingAssistant from './components/FloatingAssistant';
-import { UserDiagnostics, Recipe, AppLanguage, AppTheme, AppView } from './types';
+import { UserDiagnostics, Recipe, AppLanguage, AppTheme, AppView, ChatMessage } from './types';
 import { i18n } from './translations';
 import { generateRecipe, createRecipeChat, createAssistantChat, ChatSession } from './services/geminiService';
 
@@ -32,7 +32,9 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<AppTheme>('dark');
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [isAssistantMinimized, setIsAssistantMinimized] = useState(false);
   const [assistantSession, setAssistantSession] = useState<ChatSession | null>(null);
+  const [assistantMessages, setAssistantMessages] = useState<ChatMessage[]>([]);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   
   const [diagnostics, setDiagnostics] = useState<UserDiagnostics>({
@@ -109,7 +111,13 @@ const App: React.FC = () => {
     if (!assistantSession) {
       setAssistantSession(createAssistantChat(diagnostics));
     }
-    setIsAssistantOpen(!isAssistantOpen);
+    setIsAssistantOpen(true);
+    setIsAssistantMinimized(false);
+  };
+
+  const resetAssistantContent = () => {
+    setAssistantSession(null);
+    setAssistantMessages([]);
   };
 
   const handleAssistantAction = (action: string, args: any) => {
@@ -123,7 +131,7 @@ const App: React.FC = () => {
         additionalSpecs: additionalSpecs || prev.additionalSpecs
       }));
       setView('synthesis');
-      setIsAssistantOpen(false); // Close assistant when navigating
+      setIsAssistantMinimized(true); // Minimize instead of closing
       
       // Scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -137,9 +145,11 @@ const App: React.FC = () => {
       }
       setIsScannerOpen(true);
       setView('questions');
+      setIsAssistantMinimized(true); // Minimize
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (action === 'open_locator') {
       setView('locator');
+      setIsAssistantMinimized(true); // Minimize
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -164,17 +174,24 @@ const App: React.FC = () => {
           chatSession={assistantSession} 
           t={t} 
           language={language}
-          onClose={() => setIsAssistantOpen(false)} 
+          messages={assistantMessages}
+          setMessages={setAssistantMessages}
+          isMinimized={isAssistantMinimized}
+          setIsMinimized={setIsAssistantMinimized}
+          onClose={() => {
+            setIsAssistantOpen(false);
+            resetAssistantContent();
+          }} 
           onAction={handleAssistantAction}
         />
       )}
       
-      <main className="container mx-auto px-4 mt-12 space-y-16">
+      <main className="container mx-auto px-4 md:mt-12 mt-6 md:space-y-16 space-y-8">
         <div className="max-w-5xl mx-auto">
           
           {view === 'synthesis' ? (
             <>
-              <section className="mb-16">
+              <section className="md:mb-16 mb-8">
                 <DiagnosticTerminal 
                   onSumbit={handleDiagnosticSubmit} 
                   onUpdate={updateDiagnostics}

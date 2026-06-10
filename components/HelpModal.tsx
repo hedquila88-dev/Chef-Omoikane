@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { ChefHat } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ChefHat, X, Info, AlertTriangle, ShieldCheck, UtensilsCrossed, Camera, MapPin } from 'lucide-react';
 import { Translations } from '../types';
 
 interface Props {
@@ -8,131 +9,158 @@ interface Props {
   onClose: () => void;
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0 }
+};
+
 const HelpModal: React.FC<Props> = ({ t, onClose }) => {
   return (
     <div 
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-300"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 backdrop-blur-xl animate-in fade-in duration-500"
       onClick={onClose}
-      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+      style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
     >
-      <div 
-        className="w-full max-w-2xl glow-border p-6 md:p-10 relative animate-in zoom-in-95 duration-300 overflow-y-auto max-h-[90vh] custom-scrollbar"
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-2xl border-2 p-6 md:p-10 relative overflow-y-auto max-h-[90vh] custom-scrollbar shadow-2xl"
         onClick={e => e.stopPropagation()}
         style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-color)' }}
       >
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center border transition-colors hover:bg-black/5 dark:hover:bg-white/10"
-          style={{ color: 'var(--text-color)', borderColor: 'var(--border-color)' }}
+          className="absolute top-4 right-4 p-2 transition-all hover:bg-white/10 group"
+          style={{ color: 'var(--text-color)' }}
         >
-          ✕
+          <X className="w-6 h-6 group-hover:rotate-90 transition-transform" />
         </button>
 
-        <div className="flex items-center gap-3 mb-10 border-b pb-4" style={{ borderColor: 'var(--border-color)' }}>
-          <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
-          <h2 className="header-font text-xl font-bold tracking-tighter uppercase" style={{ color: 'var(--text-color)' }}>
-            {t.helpTitle}
-          </h2>
+        {/* SYSTEM STATUS HEADER */}
+        <div className="flex flex-col gap-1 md:mb-10 mb-2 border-b md:pb-6 pb-2" style={{ borderColor: 'var(--border-color)' }}>
+          <div className="flex items-center">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+              <h2 className="header-font md:text-2xl text-lg font-black tracking-tight uppercase" style={{ color: 'var(--text-color)' }}>
+                SYSTEM_GUIDE
+              </h2>
+            </div>
+          </div>
+          <div className="text-[9px] font-mono opacity-50 uppercase tracking-[0.1em] md:block hidden">
+            Operational Protocol and Feature Matrix
+          </div>
         </div>
 
-        <div className="space-y-12 font-mono">
-          {/* Quick Guide Visual Section */}
-          <section className="p-6 border-l-4" style={{ borderColor: 'var(--text-color)', backgroundColor: 'var(--sub-bg)' }}>
-            <h3 className="text-[10px] font-black tracking-widest uppercase mb-6 opacity-80" style={{ color: 'var(--text-color)' }}>
-              {t.quickStartProtocol}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-              <div className="space-y-3">
-                <div className="w-10 h-10 border border-white/20 rounded-full flex items-center justify-center mx-auto text-xs font-bold">1</div>
-                <div className="text-[9px] uppercase font-bold tracking-widest leading-tight">{t.step1}</div>
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="md:space-y-12 space-y-2 font-mono"
+        >
+          {/* USER WORKFLOW */}
+          <motion.section variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-2 md:divide-x divide-white/10 border-y md:py-8 py-3" style={{ borderColor: 'var(--border-color)' }}>
+            {[
+              { id: '01', title: t.step1, desc: "DIETARY CONFIG" },
+              { id: '02', title: t.step2, desc: "RECIPE SYNTHESIS" },
+              { id: '03', title: t.step3, desc: "LIVE ANALYSIS" }
+            ].map((step) => (
+              <div key={step.id} className="md:px-6 px-1 flex md:flex-col items-center md:items-start gap-4 md:gap-4 md:space-y-4">
+                <div className="text-[10px] md:opacity-40 font-black shrink-0 border md:border-0 p-1 md:p-0 min-w-[24px] text-center" style={{ borderColor: 'var(--border-color)' }}>{step.id}</div>
+                <div className="flex flex-col">
+                  <div className="text-[10px] md:text-xs font-bold leading-tight uppercase md:tracking-widest">{step.title}</div>
+                  <div className="text-[8px] md:text-[9px] opacity-40 md:opacity-50 md:tracking-[0.3em]">{step.desc}</div>
+                </div>
               </div>
-              <div className="space-y-3">
-                <div className="w-10 h-10 border border-white/20 rounded-full flex items-center justify-center mx-auto text-xs font-bold">2</div>
-                <div className="text-[9px] uppercase font-bold tracking-widest leading-tight">{t.step2}</div>
+            ))}
+          </motion.section>
+
+          {/* FUNCTIONAL SPECS */}
+          <motion.section variants={itemVariants} className="md:space-y-10 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 md:gap-10 gap-6">
+              <div className="space-y-2 md:space-y-4">
+                <h3 className="text-[10px] font-black tracking-widest uppercase opacity-70 flex items-center gap-2">
+                  <UtensilsCrossed className="w-3 h-3 text-orange-500" />
+                  LET'S COOK SOMETHING
+                </h3>
+                <p className="text-[12px] leading-relaxed opacity-90 font-medium" style={{ color: 'var(--text-color)' }}>
+                  Our synthesis engine creates Michelin-grade recipes tailored to your exact dietary profile. Use the form to specify target dishes or available objects.
+                </p>
               </div>
-              <div className="space-y-3">
-                <div className="w-10 h-10 border border-white/20 rounded-full flex items-center justify-center mx-auto text-xs font-bold">3</div>
-                <div className="text-[9px] uppercase font-bold tracking-widest leading-tight">{t.step3}</div>
+
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-black tracking-widest uppercase opacity-70 flex items-center gap-2">
+                  <Camera className="w-3 h-3 text-blue-500" />
+                  LET'S CHECK WHAT WE GOT
+                </h3>
+                <p className="text-[12px] leading-relaxed opacity-90 font-medium" style={{ color: 'var(--text-color)' }}>
+                  Real-time visual analysis. Point your camera at a dish or menu to identify allergens and nutritional density based on your current health status.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-black tracking-widest uppercase opacity-70 flex items-center gap-2">
+                  <MapPin className="w-3 h-3 text-green-500" />
+                  GASTRONOMIC LOCATOR
+                </h3>
+                <p className="text-[12px] leading-relaxed opacity-90 font-medium" style={{ color: 'var(--text-color)' }}>
+                  Activate geo-analysis to find secure venues nearby. We cross-reference their known menus against your restrictions for a safe dining experience.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-black tracking-widest uppercase opacity-70 flex items-center gap-2">
+                  <ChefHat className="w-3 h-3" style={{ color: 'var(--text-color)' }} />
+                  AI ASSISTANT (OMOI_BOT)
+                </h3>
+                <p className="text-[12px] leading-relaxed opacity-90 font-medium" style={{ color: 'var(--text-color)' }}>
+                  Click the Chef Hat icon for conversational support. OMOI_BOT can navigate sectors, pre-fill synthesis data, and provide technical culinary advice.
+                </p>
               </div>
             </div>
-          </section>
+          </motion.section>
 
-          {/* Q&A Section */}
-          <section className="space-y-8">
-            <div>
-              <h3 className="text-[10px] font-black tracking-widest uppercase mb-3 opacity-50" style={{ color: 'var(--text-color)' }}>
-                01 // {t.helpQ1}
-              </h3>
-              <p className="text-sm leading-relaxed opacity-90" style={{ color: 'var(--text-color)' }}>
-                {t.helpA1}
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-[10px] font-black tracking-widest uppercase mb-3 opacity-50" style={{ color: 'var(--text-color)' }}>
-                02 // {t.helpQ2}
-              </h3>
-              <p className="text-sm leading-relaxed opacity-90" style={{ color: 'var(--text-color)' }}>
-                {t.helpA2}
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-[10px] font-black tracking-widest uppercase mb-3 opacity-50" style={{ color: 'var(--text-color)' }}>
-                03 // {t.helpQ3}
-              </h3>
-              <p className="text-sm leading-relaxed opacity-90" style={{ color: 'var(--text-color)' }}>
-                {t.helpA3}
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-[10px] font-black tracking-widest uppercase mb-3 opacity-50" style={{ color: 'var(--text-color)' }}>
-                04 // {t.helpQ4}
-              </h3>
-              <p className="text-sm leading-relaxed opacity-90" style={{ color: 'var(--text-color)' }}>
-                {t.helpA4}
-              </p>
-            </div>
-          </section>
-
-          {/* Critical Warning */}
-          <section className="pt-6 border-t" style={{ borderColor: 'var(--border-color)' }}>
-            {/* AI Assistant Note */}
-            <div className="p-4 border flex items-center gap-4" style={{ borderColor: 'var(--sub-border)', backgroundColor: 'var(--sub-bg)' }}>
-              <div className="w-10 h-10 flex items-center justify-center border rounded-full" style={{ borderColor: 'var(--sub-border)' }}>
-                <ChefHat className="w-5 h-5" style={{ color: 'var(--text-color)' }} />
+          {/* PROTOCOL OVERLAYS */}
+          <motion.section variants={itemVariants} className="pt-10 border-t space-y-6" style={{ borderColor: 'var(--border-color)' }}>
+            <div className="p-6 border-2 border-dashed flex items-start gap-4" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--sub-bg)' }}>
+              <ShieldCheck className="w-6 h-6 mt-1 flex-shrink-0 opacity-60" />
+              <div className="space-y-2">
+                <div className="text-[10px] font-black uppercase tracking-widest">Privacy & Integrity Protocol</div>
+                <p className="text-[11px] leading-relaxed opacity-70">
+                  All image analysis is ephemeral. We process textures and components in real-time to ensure absolute nutritional integrity without storing personal identifiers.
+                </p>
               </div>
-              <p className="text-[11px] leading-snug" style={{ color: 'var(--text-color)' }}>
-                {t.helpAssistantNote}
-              </p>
             </div>
 
-            <div className="p-5 border" style={{ backgroundColor: 'rgba(239, 68, 68, 0.05)', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
-              <div className="flex items-center gap-3 mb-3">
-                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">
-                  {t.helpSafetyTitle}
-                </span>
+            <div className="p-6 border-2 border-red-500/30 bg-red-500/5 flex items-start gap-4">
+              <AlertTriangle className="w-6 h-6 mt-1 flex-shrink-0 text-red-500/60" />
+              <div className="space-y-2">
+                <div className="text-[10px] font-black uppercase tracking-widest text-red-500/80">Bio-Safety Notification</div>
+                <p className="text-[11px] italic leading-relaxed text-red-500 font-medium">
+                  {t.medicalDisclaimer}
+                </p>
               </div>
-              <p className="text-[10px] italic leading-tight opacity-70" style={{ color: 'var(--text-color)' }}>
-                {t.medicalDisclaimer}
-              </p>
             </div>
-          </section>
-        </div>
+          </motion.section>
+        </motion.div>
 
-        <div className="mt-12 flex justify-center">
+        <div className="md:mt-16 mt-8 flex justify-center">
           <button 
             onClick={onClose}
-            className="px-10 py-3 bg-white text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_5px_15px_rgba(255,255,255,0.2)]"
+            className="md:px-12 px-10 md:py-4 py-3 text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] active:scale-95 transition-all shadow-xl"
+            style={{ backgroundColor: 'var(--text-color)', color: 'var(--bg-color)' }}
           >
-            {t.status}
+            CLOSE
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

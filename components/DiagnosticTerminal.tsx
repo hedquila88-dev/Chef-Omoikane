@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { RotateCcw } from 'lucide-react';
 import { UserDiagnostics, AppLanguage, Translations } from '../types';
 import { LANGUAGES } from '../App';
 import IngredientScanner from './IngredientScanner';
@@ -33,6 +34,19 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
   };
 
   const formRef = useRef<HTMLFormElement>(null);
+
+  const resetFields = () => {
+    const cleared = {
+      targetDish: '',
+      preferences: '',
+      healthProfile: '',
+      ingredients: '',
+      tastePreferences: ''
+    };
+    setFormData(cleared);
+    onUpdate(cleared);
+  };
+
 
   useEffect(() => {
     // Only update if external diagnostics have changed and are different from local state
@@ -198,7 +212,7 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
   }, [formData.healthProfile, formData.ingredients]);
 
   return (
-    <div className="glow-border p-6 rounded-none relative overflow-visible" style={{ backgroundColor: 'var(--bg-color)', borderColor: 'var(--border-color)' }}>
+    <div className="glow-border md:p-6 p-4 pt-2 md:pt-6 rounded-none relative overflow-visible" style={{ backgroundColor: 'var(--bg-color)', borderColor: 'var(--border-color)' }}>
       {isScannerOpen && (
         <IngredientScanner 
           onClose={closeScanner}
@@ -207,22 +221,32 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
           t={t}
         />
       )}
-      <h2 className="header-font text-lg mb-12 flex items-center gap-2 tracking-tighter" style={{ color: 'var(--text-color)' }}>
-        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--text-color)' }}></span>
-        {t.synthesisParams}
+      <h2 className="header-font text-lg md:mb-12 mb-3 flex items-center justify-between tracking-tighter" style={{ color: 'var(--text-color)' }}>
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--text-color)' }}></span>
+          {t.synthesisParams}
+        </div>
+        <button 
+          type="button"
+          onClick={resetFields}
+          className="p-2 hover:bg-white/5 rounded-full transition-all group"
+          title="Reset Fields"
+        >
+          <RotateCcw className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" />
+        </button>
       </h2>
 
-      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+      <form ref={formRef} onSubmit={handleSubmit} className="md:space-y-6 space-y-4">
         {/* TARGET DISH */}
-        <div className="space-y-1.5">
-          <label className="block text-[9px] uppercase font-bold tracking-[0.1em] font-mono opacity-60" style={{ color: 'var(--text-color)' }}>
+        <div className="space-y-1">
+          <label className="block text-[8px] md:text-[9px] uppercase font-black tracking-[0.1em] font-mono opacity-50" style={{ color: 'var(--text-color)' }}>
             {t.targetDish}
           </label>
           <div className="relative border transition-colors" style={{ borderColor: 'var(--sub-border)', backgroundColor: 'var(--sub-bg)' }}>
             <input 
               type="text"
               onFocus={handleFocus}
-              className="w-full bg-transparent p-3 pr-12 text-[13px] outline-none font-mono placeholder:opacity-20"
+              className="w-full bg-transparent md:p-3 p-2 pr-10 md:pr-12 text-[12px] md:text-[13px] outline-none font-mono placeholder:opacity-20"
               style={{ color: 'var(--text-color)' }}
               placeholder={t.targetDishPlace}
               value={formData.targetDish}
@@ -233,14 +257,14 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
         </div>
 
         {/* ANY PREFERENCES */}
-        <div className="space-y-1.5">
-          <label className="block text-[9px] uppercase font-bold tracking-[0.1em] font-mono opacity-60" style={{ color: 'var(--text-color)' }}>
+        <div className="space-y-1">
+          <label className="block text-[8px] md:text-[9px] uppercase font-black tracking-[0.1em] font-mono opacity-50" style={{ color: 'var(--text-color)' }}>
              {t.additionalSpecs}
           </label>
           <div className="relative border transition-colors" style={{ borderColor: 'var(--sub-border)', backgroundColor: 'var(--sub-bg)' }}>
             <textarea 
               onFocus={handleFocus}
-              className="w-full bg-transparent p-3 pr-12 text-[13px] outline-none h-16 font-mono resize-none placeholder:opacity-20 leading-tight"
+              className="w-full bg-transparent md:p-3 p-2 pr-10 md:pr-12 text-[12px] md:text-[13px] outline-none md:h-16 h-12 font-mono resize-none placeholder:opacity-20 leading-tight"
               style={{ color: 'var(--text-color)' }}
               placeholder={t.additionalSpecsPlace}
               value={formData.additionalSpecs}
@@ -251,13 +275,13 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
         </div>
 
         {/* UNIFIED HEALTH PROFILE & AVAILABLE INGREDIENTS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="block text-[9px] uppercase font-bold tracking-[0.1em] font-mono opacity-40" style={{ color: 'var(--text-color)' }}>{t.healthProfile}</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 md:gap-4 gap-3">
+          <div className="space-y-1">
+            <label className="block text-[8px] md:text-[9px] uppercase font-black tracking-[0.1em] font-mono opacity-40" style={{ color: 'var(--text-color)' }}>{t.healthProfile}</label>
             <div className="relative border transition-colors" style={{ borderColor: 'var(--sub-border)', backgroundColor: 'var(--sub-bg)' }}>
               <textarea 
                 onFocus={handleFocus}
-                className="w-full bg-transparent p-2 pr-10 text-[10px] outline-none h-12 font-mono resize-none placeholder:opacity-20 leading-tight"
+                className="w-full bg-transparent p-2 pr-10 text-[10px] outline-none md:h-12 h-10 font-mono resize-none placeholder:opacity-20 leading-tight"
                 style={{ color: 'var(--text-color)' }}
                 placeholder={t.healthProfilePlace}
                 value={formData.healthProfile}
@@ -275,26 +299,26 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
               </div>
             )}
           </div>
-          <div className="space-y-1.5">
-            <label className="block text-[9px] uppercase font-bold tracking-[0.1em] font-mono opacity-40" style={{ color: 'var(--text-color)' }}>{t.ingredients}</label>
+          <div className="space-y-1">
+            <label className="block text-[8px] md:text-[9px] uppercase font-black tracking-[0.1em] font-mono opacity-40" style={{ color: 'var(--text-color)' }}>{t.ingredients}</label>
             <div className="relative border transition-colors" style={{ borderColor: 'var(--sub-border)', backgroundColor: 'var(--sub-bg)' }}>
               <textarea 
                 onFocus={handleFocus}
-                className="w-full bg-transparent p-2 pr-20 text-[10px] outline-none h-12 font-mono resize-none placeholder:opacity-20 leading-tight"
+                className="w-full bg-transparent p-2 pr-16 md:pr-20 text-[10px] outline-none md:h-12 h-10 font-mono resize-none placeholder:opacity-20 leading-tight"
                 style={{ color: 'var(--text-color)' }}
                 placeholder={t.ingredientsPlace}
                 value={formData.ingredients}
                 onChange={(e) => updateLocalAndGlobal('ingredients', e.target.value)}
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+              <div className="absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 flex gap-1">
                 <button
                   type="button"
                   onClick={() => setIsScannerOpen(true)}
-                  className="p-1.5 rounded-full opacity-50 hover:opacity-100 transition-all border"
+                  className="p-1 px-1.5 rounded-full opacity-50 hover:opacity-100 transition-all border"
                   style={{ backgroundColor: 'var(--sub-bg)', borderColor: 'var(--sub-border)' }}
                   title="BIO SCANNER ACTIVATE"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
                     <circle cx="12" cy="12" r="3.2"/>
                   </svg>
@@ -302,10 +326,10 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
                 <button
                   type="button"
                   onClick={() => startVoiceInput('ingredients')}
-                  className={`p-1.5 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-all ${activeMic === 'ingredients' ? 'recording-pulse scale-110' : 'opacity-30 hover:opacity-100'}`}
+                  className={`p-1 px-1.5 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-all ${activeMic === 'ingredients' ? 'recording-pulse scale-110' : 'opacity-30 hover:opacity-100'}`}
                   title="VOCAL SENSOR ACTIVATE"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
                     <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
                   </svg>
@@ -344,13 +368,13 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
         </div>
 
         {/* TASTE PREFERENCES (Full Width or Grid Row) */}
-        <div className="space-y-1.5">
-          <label className="block text-[9px] uppercase font-bold tracking-[0.1em] font-mono opacity-60" style={{ color: 'var(--text-color)' }}>{t.preferences}</label>
+        <div className="space-y-1">
+          <label className="block text-[8px] md:text-[9px] uppercase font-black tracking-[0.1em] font-mono opacity-50" style={{ color: 'var(--text-color)' }}>{t.preferences}</label>
           <div className="relative border transition-colors" style={{ borderColor: 'var(--sub-border)', backgroundColor: 'var(--sub-bg)' }}>
             <input 
               type="text"
               onFocus={handleFocus}
-              className="w-full bg-transparent p-3 pr-12 text-[13px] outline-none font-mono placeholder:opacity-20"
+              className="w-full bg-transparent md:p-3 p-2 pr-10 md:pr-12 text-[12px] md:text-[13px] outline-none font-mono placeholder:opacity-20"
               style={{ color: 'var(--text-color)' }}
               placeholder={t.preferencesPlace}
               value={formData.preferences}
@@ -361,14 +385,14 @@ const DiagnosticTerminal: React.FC<Props> = ({ onSumbit, onUpdate, diagnostics, 
         </div>
 
         {/* 3D TACTILE SYNTHESIS BUTTON */}
-        <div className="pt-4">
+        <div className="md:pt-4 pt-1">
           <button 
             disabled={isLoading}
             className={`
-              w-full py-8 header-font font-black text-sm uppercase tracking-[0.6em] 
+              w-full md:py-8 py-3.5 header-font font-black md:text-sm text-[10px] uppercase tracking-[0.4em] 
               transition-all duration-75 border-2 rounded-2xl
               disabled:opacity-30 disabled:pointer-events-none disabled:translate-y-0 disabled:border-b-2
-              ${!isLoading ? 'border-b-[8px] active:border-b-2 active:translate-y-[6px]' : 'border-b-2 translate-y-[6px] opacity-80'}
+              ${!isLoading ? 'border-b-[8px] md:border-b-[8px] border-b-[4px] active:border-b-2 active:translate-y-[6px]' : 'border-b-2 translate-y-[6px] opacity-80'}
             `}
             style={{ 
               backgroundColor: 'var(--text-color)', 
