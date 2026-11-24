@@ -1,0 +1,10 @@
+{
+  "name": "Chef Omoikane",
+  "description": "Un'IA ibrida che combina l'alta cucina stellata con la biochimica alimentare per creare ricette gourmet sicure e ottimizzate per patologie specifiche.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}
