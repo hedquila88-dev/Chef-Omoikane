@@ -1,4 +1,4 @@
-# 🍱 Chef Omoikane (オモイカネ)
+# 🍱 Chef Omoikane
 > Cyberpunk AI Dietary & Bio-Culinary Assistant
 
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://react.dev/)
