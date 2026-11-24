@@ -30,6 +30,6 @@ Chef Omoikane is an AI-powered bio-culinary terminal engineered with a retro-cyb
 ### 1. Installation
 Clone the repository and install dependencies:
 ```bash
-git clone https://github.com/<your-username>/<your-repo-name>.git
-cd <your-repo-name>
+git clone https://github.com/HEdq-dev/chef-omoikane.git
+cd chef-omoikane
 npm install
