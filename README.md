@@ -1,20 +1,35 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# 🍱 Chef Omoikane (オモイカネ)
+> Cyberpunk AI Dietary & Bio-Culinary Assistant
 
-# Run and deploy your AI Studio app
+[![React](https://img.shields.io/badge/React-18-blue.svg)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF.svg)](https://vitejs.dev/)
+[![Gemini](https://img.shields.io/badge/Google%20Gemini-2.5-4285F4.svg)](https://ai.google.dev/)
+[![Capacitor](https://img.shields.io/badge/Capacitor-Android-119EFF.svg)](https://capacitorjs.com/)
 
-This contains everything you need to run your app locally.
+Chef Omoikane is an AI-powered bio-culinary terminal engineered with a retro-cyberpunk aesthetic. It analyzes ingredients via computer vision, adapts recipes to user health and allergy profiles, scans nutritional labels for bio-hazards, and searches for safe local dining spots with dual-provider API failover.
 
-View your app in AI Studio: https://ai.studio/apps/8a8b2bd0-2a0e-4c35-a4a7-d7ec03311477
+---
 
-## Run Locally
+## ⚡ Key Features
 
-**Prerequisites:**  Node.js
+- **🍳 Let's Cook Something (Recipe Generator)**: Generates tailored, allergen-free recipes based on your dietary profile, available ingredients, and culinary preferences.
+- **👁️ Bio-Scanner Vision**: Real-time camera feed and image upload to instantly recognize ingredients, food items, and nutritional labels using multimodal vision.
+- **🛡️ Let's Check What We Got (Safety Checker)**: Cross-checks food labels and menu items against your personalized clinical health conditions and allergen restrictions.
+- **📍 Bio-Locator (Maps Terminal)**: Uses GPS to scan nearby restaurants, cafes, and markets, categorizing each venue by safety level (Safe / Caution / Critical).
+- **🤖 Omoi Bot Assistant**: Floating, voice-enabled assistant to assist and refine culinary decisions on the fly.
+- **🔑 Dual API Failover System**: Supports a primary Gemini key and an optional backup key (xAI Grok, OpenRouter, or a secondary Gemini key) with automated failover in case of rate limits or service interruptions.
 
+---
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 🚀 Quick Start (Local Setup)
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- [Google AI Studio API Key](https://aistudio.google.com/app/apikey)
+
+### 1. Installation
+Clone the repository and install dependencies:
+```bash
+git clone https://github.com/<your-username>/<your-repo-name>.git
+cd <your-repo-name>
+npm install
